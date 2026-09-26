@@ -7,7 +7,7 @@
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
     body { background-color: #0b1120; color: #f1f5f9; padding: 15px; padding-bottom: 75px; min-height: 100vh; }
-    .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+    .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
     .header h2 { color: #38bdf8; font-size: 19px; }
     .header-user { display: flex; align-items: center; gap: 8px; font-size: 12px; }
     .card { background: #1e293b; border-radius: 12px; padding: 15px; margin-bottom: 15px; border: 1px solid #334155; }
@@ -27,31 +27,50 @@
     .btn-logout { background: #ef4444; padding: 5px 10px; font-size: 11px; border-radius: 6px; width: auto; margin-top: 0; cursor: pointer; }
     .btn-profile { background: #0284c7; padding: 5px 10px; font-size: 11px; border-radius: 6px; width: auto; margin-top: 0; cursor: pointer; }
     
-    /* দেশ অনুযায়ী আলাদা সেকশন স্টাইল */
-    .country-section { background: #0f172a; border: 1px solid #334155; border-radius: 8px; margin-top: 10px; padding: 10px; }
-    .country-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #1e293b; padding-bottom: 8px; margin-bottom: 8px; }
-    .country-title { font-size: 13px; font-weight: bold; color: #38bdf8; }
-    .btn-copy-all { background: #10b981; color: #fff; border: none; padding: 4px 8px; font-size: 11px; border-radius: 4px; cursor: pointer; width: auto; margin-top: 0; }
+    /* ফিল্টার ট্যাব */
+    .filter-tabs { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 12px; }
+    .filter-btn { background: #0f172a; border: 1px solid #334155; color: #94a3b8; padding: 4px 10px; border-radius: 6px; font-size: 11px; cursor: pointer; white-space: nowrap; width: auto; margin: 0; }
+    .filter-btn.active { background: #38bdf8; color: #0b1120; font-weight: bold; border-color: #38bdf8; }
+    
+    /* দেশ অনুযায়ী কার্ড */
+    .country-section { background: #0f172a; border: 1px solid #334155; border-radius: 8px; margin-bottom: 15px; padding: 12px; }
+    .country-header { display: flex; flex-direction: column; gap: 8px; border-bottom: 1px solid #1e293b; padding-bottom: 8px; margin-bottom: 8px; }
+    @media (min-width: 520px) {
+      .country-header { flex-direction: row; justify-content: space-between; align-items: center; }
+    }
+    .country-title { font-size: 13px; font-weight: bold; color: #38bdf8; display: flex; align-items: center; gap: 6px; }
+    .country-btns { display: flex; gap: 4px; flex-wrap: wrap; }
+    
+    /* কপি বাটন স্টাইল */
+    .btn-copy-full { background: #10b981; color: #fff; border: none; padding: 4px 8px; font-size: 11px; border-radius: 5px; cursor: pointer; width: auto; margin: 0; font-weight: 600; }
+    .btn-copy-pure { background: #0284c7; color: #fff; border: none; padding: 4px 8px; font-size: 11px; border-radius: 5px; cursor: pointer; width: auto; margin: 0; font-weight: 600; }
+    .btn-replace-all { background: #f59e0b; color: #000; font-weight: bold; border: none; padding: 4px 8px; font-size: 11px; border-radius: 5px; cursor: pointer; width: auto; margin: 0; }
+    .btn-release-all { background: #ef4444; color: #fff; border: none; padding: 4px 8px; font-size: 11px; border-radius: 5px; cursor: pointer; width: auto; margin: 0; }
     
     table { width: 100%; border-collapse: collapse; font-size: 12px; }
     th, td { padding: 8px 4px; text-align: left; border-bottom: 1px solid #1e293b; }
     th { color: #94a3b8; }
     .otp-text { background: #0284c7; padding: 3px 6px; border-radius: 4px; font-weight: bold; color: #fff; display: inline-block; word-break: break-all; font-family: monospace; }
-    .copy-btn { background: #334155; color: #38bdf8; border: 1px solid #475569; padding: 3px 6px; border-radius: 4px; font-size: 11px; cursor: pointer; width: auto; margin: 0; }
+    
+    /* টেবিল কপি বাটন */
+    .btn-row-full { background: #10b981; color: #fff; border: none; padding: 3px 6px; border-radius: 4px; font-size: 10px; cursor: pointer; width: auto; margin: 0; font-weight: bold; }
+    .btn-row-pure { background: #0284c7; color: #fff; border: none; padding: 3px 6px; border-radius: 4px; font-size: 10px; cursor: pointer; width: auto; margin: 0; font-weight: bold; }
+    .rep-single-btn { background: #f59e0b; color: #000; border: none; padding: 3px 6px; border-radius: 4px; font-size: 10px; cursor: pointer; width: auto; margin: 0; font-weight: bold; }
+    
     .nav-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #0f172a; display: flex; justify-content: space-around; padding: 10px; border-top: 1px solid #334155; z-index: 50; }
-    .nav-item { color: #94a3b8; text-decoration: none; font-size: 13px; font-weight: bold; cursor: pointer; }
-    .nav-item.active { color: #38bdf8; }
+    .nav-item { color: #94a3b8; text-decoration: none; font-size: 13px; font-weight: bold; cursor: pointer; padding: 4px 8px; border-radius: 6px; }
+    .nav-item.active { color: #38bdf8; background: #1e293b; }
     .login-container { max-width: 380px; margin: 40px auto; }
     .alert-box { background: rgba(239, 68, 68, 0.2); border: 1px solid #ef4444; color: #fca5a5; padding: 10px; border-radius: 8px; font-size: 12px; margin-bottom: 12px; display: none; }
     
-    /* প্রোফাইল মডাল */
     .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: none; justify-content: center; align-items: center; z-index: 100; padding: 15px; }
-    .modal-box { background: #1e293b; border: 1px solid #38bdf8; border-radius: 12px; padding: 20px; width: 100%; max-width: 360px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
+    .modal-box { background: #1e293b; border: 1px solid #38bdf8; border-radius: 12px; padding: 20px; width: 100%; max-width: 360px; }
+    .lamix-notice { background: rgba(245, 158, 11, 0.15); border: 1px solid #f59e0b; color: #fde68a; padding: 8px 10px; border-radius: 6px; font-size: 11px; margin-bottom: 12px; }
   </style>
 </head>
 <body>
 
-  <!-- ================= ১. লগইন সেকশন ================= -->
+  <!-- ১. লগইন সেকশন -->
   <div id="loginSection" class="login-container">
     <div class="card">
       <h2 style="color: #38bdf8; text-align: center; margin-bottom: 6px; font-size: 20px;">🔐 Lamix User Login</h2>
@@ -73,7 +92,7 @@
     </div>
   </div>
 
-  <!-- ================= ২. ইউজার ড্যাশবোর্ড ================= -->
+  <!-- ২. মেইন অ্যাপলিকেশন -->
   <div id="dashboardSection" style="display: none;">
     <div class="header">
       <h2>Lamix SMS Panel</h2>
@@ -83,80 +102,103 @@
       </div>
     </div>
 
-    <!-- আয় ড্যাশবোর্ড -->
-    <div class="card">
-      <div class="stats">
-        <div class="stat-box"><div>Balance</div><div class="stat-val" id="userBalance">$0.00</div></div>
-        <div class="stat-box"><div>Today Payout</div><div class="stat-val" id="todayEarn">$0.00</div></div>
-        <div class="stat-box"><div>7 Days Payout</div><div class="stat-val" id="sevenDayEarn">$0.00</div></div>
-        <div class="stat-box"><div>Total SMS</div><div class="stat-val" id="totalSms">0</div></div>
+    <!-- সন্ধ্যা ৬:০০ টার নোটিশ -->
+    <div class="lamix-notice">
+      ⏰ <b>Lamix নিয়ম:</b> প্রতিদিন সন্ধ্যা ৬:০০ টায় সমস্ত নম্বর স্বয়ংক্রিয়ভাবে রিসেট হয়ে যায়। নতুন নম্বর পেতে 'Replace' চাপুন।
+    </div>
+
+    <!-- ================= TAB ১: ড্যাশবোর্ড ================= -->
+    <div id="viewDashboard">
+      <div class="card">
+        <div class="stats">
+          <div class="stat-box"><div>Balance</div><div class="stat-val" id="userBalance">$0.00</div></div>
+          <div class="stat-box"><div>Today Payout</div><div class="stat-val" id="todayEarn">$0.00</div></div>
+          <div class="stat-box"><div>7 Days Payout</div><div class="stat-val" id="sevenDayEarn">$0.00</div></div>
+          <div class="stat-box"><div>Total SMS</div><div class="stat-val" id="totalSms">0</div></div>
+        </div>
+      </div>
+
+      <!-- নম্বর বরাদ্দ বক্স -->
+      <div class="card">
+        <h3 style="font-size: 15px; color: #38bdf8;">Allocate Numbers</h3>
+        <label style="font-size: 11px; color: #94a3b8; margin-top: 6px; display: block;">Select Range:</label>
+        <select id="rangeSelect">
+          <option>Loading ranges...</option>
+        </select>
+
+        <div style="display: flex; gap: 8px; margin-top: 5px;">
+          <input type="number" id="numQty" value="10" min="1" max="50" style="width: 80px;" title="পরিমাণ">
+          <button onclick="allocateNumber()" id="btnAllocate" style="margin-top: 5px; flex: 1;">+ Allocate Number</button>
+        </div>
+        
+        <p style="font-size: 11px; color: #94a3b8; margin-top: 10px;">
+          💡 কোন কোন রেঞ্জের নম্বর নিয়েছেন দেখতে নিচের <b style="color:#38bdf8;">'📱 Numbers'</b> মেনুতে যান। সেখান থেকে কোডসহ বা কোড বাদে এক ক্লিকে কপি করতে পারবেন।
+        </p>
       </div>
     </div>
 
-    <!-- নম্বর বরাদ্দ ও রেঞ্জ নির্বাচন -->
-    <div class="card" id="allocateCard">
-      <h3 style="font-size: 15px; color: #38bdf8;">Allocate Numbers</h3>
-      <label style="font-size: 11px; color: #94a3b8; margin-top: 6px; display: block;">Select Range:</label>
-      <select id="rangeSelect">
-        <option>Loading ranges...</option>
-      </select>
+    <!-- ================= TAB ২: আলাদা নম্বর সেকশন (My Numbers) ================= -->
+    <div id="viewNumbers" style="display: none;">
+      <div class="card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+          <h3 style="font-size: 15px; color: #38bdf8;">📱 আপনার বরাদ্দকৃত রেঞ্জ ও নম্বর</h3>
+          <button onclick="clearAllNumbers()" style="background:#ef4444; width:auto; font-size:11px; padding:4px 8px; margin-top:0;">🗑️ সব মুছুন</button>
+        </div>
 
-      <div style="display: flex; gap: 8px; margin-top: 5px;">
-        <input type="number" id="numQty" value="10" min="1" max="50" style="width: 80px;" title="পরিমাণ">
-        <button onclick="allocateNumber()" id="btnAllocate" style="margin-top: 5px; flex: 1;">+ Allocate Number</button>
-      </div>
+        <!-- ফিল্টার বার -->
+        <div class="filter-tabs" id="filterTabs"></div>
 
-      <!-- দেশ অনুযায়ী আলাদা আলাদা সেকশন যেখানে নম্বর থাকবে -->
-      <div style="margin-top: 15px;">
-        <div style="font-size: 12px; color: #94a3b8; margin-bottom: 5px;">Your Active Numbers (By Country):</div>
+        <!-- বিভিন্ন দেশের নম্বর সেকশন -->
         <div id="countrySectionsContainer">
-          <div style="text-align:center; color:#64748b; font-size:12px; padding: 15px;">কোনো নম্বর নেওয়া হয়নি।</div>
+          <div style="text-align:center; color:#64748b; font-size:12px; padding: 25px;">কোনো নম্বর নেই। Dashboard থেকে নম্বর নিন।</div>
         </div>
       </div>
     </div>
 
-    <!-- লাইভ ওটিপি এবং রিফ্রেশ -->
-    <div class="card" id="messagesCard">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 6px;">
-        <h3 style="font-size: 15px; color: #38bdf8;">Live Messages / OTP</h3>
-        <span id="statusText" style="font-size: 11px; color: #4ade80;"></span>
-      </div>
-      <button class="btn-refresh" id="btnRefresh" onclick="fetchMessages(true)">🔄 Refresh OTP</button>
+    <!-- ================= TAB ৩: মেসেজ ও ওটিপি ================= -->
+    <div id="viewMessages" style="display: none;">
+      <div class="card">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 6px;">
+          <h3 style="font-size: 15px; color: #38bdf8;">Live Messages / OTP</h3>
+          <span id="statusText" style="font-size: 11px; color: #4ade80;"></span>
+        </div>
+        <button class="btn-refresh" id="btnRefresh" onclick="fetchMessages(true)">🔄 Refresh OTP</button>
 
-      <table>
-        <thead>
-          <tr>
-            <th>Time</th>
-            <th>Number</th>
-            <th>Sender</th>
-            <th>Message</th>
-            <th>Payout</th>
-          </tr>
-        </thead>
-        <tbody id="messagesTable">
-          <tr><td colspan="5" style="text-align:center; color:#94a3b8; padding: 15px 0;">কোনো ওটিপি আসেনি। উপরে Refresh বাটনে চাপুন।</td></tr>
-        </tbody>
-      </table>
+        <table>
+          <thead>
+            <tr>
+              <th>Time</th>
+              <th>Number</th>
+              <th>Sender</th>
+              <th>Message</th>
+              <th>Payout</th>
+            </tr>
+          </thead>
+          <tbody id="messagesTable">
+            <tr><td colspan="5" style="text-align:center; color:#94a3b8; padding: 15px 0;">কোনো ওটিপি আসেনি।</td></tr>
+          </tbody>
+        </table>
+      </div>
     </div>
 
-    <!-- বটম মেনু (অ্যাডমিন ছাড়া সম্পূর্ণ ইউজার ফ্রেন্ডলি) -->
+    <!-- বটম মেনু -->
     <div class="nav-bar">
-      <a href="#" class="nav-item active">📊 Dashboard</a>
-      <a href="#allocateCard" class="nav-item">📱 Numbers</a>
-      <a href="#messagesCard" class="nav-item" onclick="fetchMessages(true)">💬 Messages</a>
+      <a href="javascript:void(0)" id="navDash" class="nav-item active" onclick="switchTab('dashboard')">📊 Dashboard</a>
+      <a href="javascript:void(0)" id="navNums" class="nav-item" onclick="switchTab('numbers')">📱 Numbers <span id="numBadge" style="font-size:10px; background:#2563eb; color:#fff; padding:1px 5px; border-radius:10px;">0</span></a>
+      <a href="javascript:void(0)" id="navMsgs" class="nav-item" onclick="switchTab('messages')">💬 Messages</a>
       <a href="javascript:void(0)" class="nav-item" onclick="openProfileModal()">👤 Profile</a>
       <a href="javascript:void(0)" class="nav-item" onclick="logout()" style="color: #ef4444;">🚪 Exit</a>
     </div>
   </div>
 
-  <!-- ================= ৩. প্রোফাইল পপ-আপ মডাল ================= -->
+  <!-- প্রোফাইল মডাল -->
   <div id="profileModal" class="modal-overlay">
     <div class="modal-box">
       <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #334155; padding-bottom: 8px; margin-bottom: 12px;">
         <h3 style="color: #38bdf8; font-size: 16px;">👤 User Profile</h3>
         <span onclick="closeProfileModal()" style="color:#94a3b8; font-size: 20px; cursor: pointer;">&times;</span>
       </div>
-      <div style="font-size: 13px; space-y: 8px; line-height: 1.8;">
+      <div style="font-size: 13px; line-height: 1.8;">
         <div><b>Username:</b> <span id="profUser" style="color: #4ade80;">-</span></div>
         <div><b>Account Status:</b> <span style="color: #38bdf8;">Active (Lamix Client)</span></div>
         <div><b>Current Balance:</b> <span id="profBalance" style="color: #4ade80;">$0.00</span></div>
@@ -171,10 +213,12 @@
     let currentUser = null;
     let refreshTimer = null;
     let availableRanges = [];
+    let currentFilter = 'all';
 
-    // দেশ ও ডায়াল কোড ডিটেকশন
+    // ডায়াল কোড ডিটেকশন
     function getDialCode(countryName) {
       const n = (countryName || "").toLowerCase();
+      if (n.includes("israel")) return "+972";
       if (n.includes("tunisia")) return "+216";
       if (n.includes("morocco")) return "+212";
       if (n.includes("algeria")) return "+213";
@@ -191,10 +235,57 @@
       if (n.includes("indonesia")) return "+62";
       if (n.includes("vietnam")) return "+84";
       if (n.includes("russia")) return "+7";
-      if (n.includes("france")) return "+33";
-      if (n.includes("germany")) return "+49";
       if (n.includes("turkey")) return "+90";
-      return "+216"; // ডিফল্ট ডায়াল কোড
+      return "+972";
+    }
+
+    // কোড বাদে শুধুমাত্র নম্বর বের করার ফাংশন
+    function extractPureNumber(fullNum, code) {
+      if (!fullNum) return "";
+      let cleanNum = fullNum.replace(/[^0-9]/g, '');
+      let cleanCode = (code || '').replace(/[^0-9]/g, '');
+      if (cleanCode && cleanNum.startsWith(cleanCode)) {
+        return cleanNum.slice(cleanCode.length);
+      }
+      return cleanNum;
+    }
+
+    // স্মুথ টোস্ট নোটিফিকেশন
+    function showToast(msg) {
+      let toast = document.getElementById('toastNotice');
+      if (!toast) {
+        toast = document.createElement('div');
+        toast.id = 'toastNotice';
+        toast.style.cssText = "position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#10b981;color:#fff;padding:8px 16px;border-radius:8px;font-size:12px;font-weight:bold;z-index:9999;box-shadow:0 4px 12px rgba(0,0,0,0.5);transition:opacity 0.3s;";
+        document.body.appendChild(toast);
+      }
+      toast.innerText = msg;
+      toast.style.opacity = '1';
+      toast.style.display = 'block';
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        setTimeout(() => toast.style.display = 'none', 300);
+      }, 1800);
+    }
+
+    function switchTab(tab) {
+      document.getElementById('viewDashboard').style.display = tab === 'dashboard' ? 'block' : 'none';
+      document.getElementById('viewNumbers').style.display = tab === 'numbers' ? 'block' : 'none';
+      document.getElementById('viewMessages').style.display = tab === 'messages' ? 'block' : 'none';
+
+      document.getElementById('navDash').classList.remove('active');
+      document.getElementById('navNums').classList.remove('active');
+      document.getElementById('navMsgs').classList.remove('active');
+
+      if (tab === 'dashboard') document.getElementById('navDash').classList.add('active');
+      if (tab === 'numbers') {
+        document.getElementById('navNums').classList.add('active');
+        renderGroupedNumbers();
+      }
+      if (tab === 'messages') {
+        document.getElementById('navMsgs').classList.add('active');
+        fetchMessages(true);
+      }
     }
 
     window.onload = function() {
@@ -233,7 +324,6 @@
       }, 8000);
     }
 
-    // লগইন সাবমিট
     document.getElementById('loginForm').addEventListener('submit', async function(e) {
       e.preventDefault();
       const alertBox = document.getElementById('loginAlert');
@@ -291,15 +381,20 @@
       document.getElementById('todayEarn').innerText = `$${(currentUser.todayEarnings || 0).toFixed(2)}`;
       document.getElementById('sevenDayEarn').innerText = `$${(currentUser.sevenDayEarnings || 0).toFixed(2)}`;
       document.getElementById('totalSms').innerText = currentUser.totalSms || 0;
+      document.getElementById('numBadge').innerText = (currentUser.numbers || []).length;
     }
 
-    // দেশ অনুযায়ী আলাদা আলাদা সেকশনে নম্বর দেখানো
+    // রেঞ্জ অনুযায়ী নম্বর রেন্ডার ও দুটি কপি সিস্টেম
     function renderGroupedNumbers() {
       const container = document.getElementById('countrySectionsContainer');
+      const filterBar = document.getElementById('filterTabs');
       const nums = currentUser.numbers || [];
 
+      document.getElementById('numBadge').innerText = nums.length;
+
       if (nums.length === 0) {
-        container.innerHTML = `<div style="text-align:center; color:#64748b; font-size:12px; padding: 15px;">কোনো নম্বর নেওয়া হয়নি। ওপর থেকে নম্বর বরাদ্দ নিন।</div>`;
+        filterBar.innerHTML = '';
+        container.innerHTML = `<div style="text-align:center; color:#64748b; font-size:12px; padding: 25px;">কোনো নম্বর নেই। Dashboard থেকে নম্বর নিন।</div>`;
         return;
       }
 
@@ -311,35 +406,62 @@
         groups[c].push(n);
       });
 
+      // ফিল্টার ট্যাব তৈরি
+      let tabsHtml = `<button class="filter-btn ${currentFilter === 'all' ? 'active' : ''}" onclick="setFilter('all')">সব রেঞ্জ (${nums.length})</button>`;
+      for (const country in groups) {
+        tabsHtml += `<button class="filter-btn ${currentFilter === country ? 'active' : ''}" onclick="setFilter('${country}')">${country} (${groups[country].length})</button>`;
+      }
+      filterBar.innerHTML = tabsHtml;
+
       let html = '';
       for (const country in groups) {
+        if (currentFilter !== 'all' && currentFilter !== country) continue;
+
         const countryNumbers = groups[country];
-        const allNumsText = countryNumbers.map(x => x.number).join('\\n');
+        const dialCode = countryNumbers[0] && countryNumbers[0].code ? countryNumbers[0].code : getDialCode(country);
+
+        // সম্পূর্ণ কোডসহ লিস্ট
+        const fullListText = countryNumbers.map(x => x.number).join('\\n');
+        // কোড বাদে শুধুমাত্র নম্বরের লিস্ট
+        const pureListText = countryNumbers.map(x => extractPureNumber(x.number, dialCode)).join('\\n');
 
         html += `
           <div class="country-section">
             <div class="country-header">
-              <span class="country-title">📍 ${country} (${countryNumbers.length} টি নম্বর)</span>
-              <button class="btn-copy-all" onclick="copyAllText(\`${allNumsText}\`)">📋 Copy All</button>
+              <span class="country-title">📍 ${country} (${dialCode}) [${countryNumbers.length} টি নম্বর]</span>
+              <div class="country-btns">
+                <button class="btn-copy-full" onclick="copyBatch(\`${fullListText}\`, 'সব নম্বর কোডসহ কপি হয়েছে!')">📋 সব (+কোডসহ)</button>
+                <button class="btn-copy-pure" onclick="copyBatch(\`${pureListText}\`, 'সব নম্বর কোড বাদে কপি হয়েছে!')">📋 সব (কোড বাদে)</button>
+                <button class="btn-replace-all" onclick="handleCountryReplace('${country}', 'replace')">🔄 Replace</button>
+                <button class="btn-release-all" onclick="handleCountryReplace('${country}', 'release')">🗑️ Release</button>
+              </div>
             </div>
             <table>
               <thead>
                 <tr>
                   <th>Number</th>
                   <th>Rate</th>
-                  <th style="text-align:right;">Action</th>
+                  <th style="text-align:right;">Actions</th>
                 </tr>
               </thead>
               <tbody>
-                ${countryNumbers.map(item => `
-                  <tr>
-                    <td style="color:#4ade80; font-weight:bold; font-family:monospace;">${item.number}</td>
-                    <td style="color:#38bdf8;">$${(item.payout || 0.05).toFixed(2)}</td>
-                    <td style="text-align:right;">
-                      <button class="copy-btn" onclick="copySingle('${item.number}')">📋 Copy</button>
-                    </td>
-                  </tr>
-                `).join('')}
+                ${countryNumbers.map(item => {
+                  const pureNum = extractPureNumber(item.number, dialCode);
+                  return `
+                    <tr>
+                      <td>
+                        <div style="color:#4ade80; font-weight:bold; font-family:monospace; font-size:13px;">${item.number}</div>
+                        <div style="color:#64748b; font-size:10px;">কোড ছাড়া: ${pureNum}</div>
+                      </td>
+                      <td style="color:#38bdf8;">$${(item.payout || 0.05).toFixed(2)}</td>
+                      <td style="text-align:right; display:flex; justify-content:flex-end; gap:4px; align-items:center;">
+                        <button class="btn-row-full" onclick="copyDirect('${item.number}', '+কোডসহ কপি হয়েছে')" title="কোডসহ কপি করুন">+কোড</button>
+                        <button class="btn-row-pure" onclick="copyDirect('${pureNum}', 'কোড বাদে কপি হয়েছে')" title="শুধু নম্বর কপি করুন">কোড ছাড়া</button>
+                        <button class="rep-single-btn" onclick="handleSingleReplace('${item.number}')" title="এই একটি নম্বর রিপ্লেস করুন">🔄</button>
+                      </td>
+                    </tr>
+                  `;
+                }).join('')}
               </tbody>
             </table>
           </div>
@@ -349,17 +471,100 @@
       container.innerHTML = html;
     }
 
-    function copySingle(num) {
-      navigator.clipboard.writeText(num);
-      alert("নম্বর কপি হয়েছে: " + num);
+    function setFilter(country) {
+      currentFilter = country;
+      renderGroupedNumbers();
     }
 
-    function copyAllText(text) {
+    function copyDirect(text, alertMsg) {
       navigator.clipboard.writeText(text);
-      alert("এই দেশের সব নম্বর একসাথে কপি করা হয়েছে!");
+      showToast(alertMsg + ": " + text);
     }
 
-    // রেঞ্জ লোড
+    function copyBatch(text, alertMsg) {
+      navigator.clipboard.writeText(text);
+      showToast(alertMsg);
+    }
+
+    // দেশ অনুযায়ী সম্পূর্ণ রিপ্লেস বা রিলিজ
+    async function handleCountryReplace(countryName, action) {
+      const confirmText = action === 'replace'
+        ? `আপনি কি '${countryName}' এর নম্বরগুলো রিপ্লেস করে ফ্রেশ নতুন নম্বর পেতে চান?`
+        : `আপনি কি '${countryName}' এর নম্বরগুলো সাইট থেকে রিলিজ (মুছে ফেলতে) চান?`;
+
+      if (!confirm(confirmText)) return;
+
+      try {
+        const res = await fetch('/api/replace-numbers', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            username: currentUser.username,
+            country: countryName,
+            action: action
+          })
+        });
+        const data = await res.json();
+        if (data.success) {
+          currentUser.numbers = data.allNumbers;
+          localStorage.setItem("lamix_sms_user", JSON.stringify(currentUser));
+          renderGroupedNumbers();
+          showToast(data.message);
+        } else {
+          alert(data.error || "সমস্যা হয়েছে!");
+        }
+      } catch (e) {
+        alert("সার্ভার ত্রুটি!");
+      }
+    }
+
+    // সিঙ্গেল নম্বর রিপ্লেস
+    async function handleSingleReplace(targetNumber) {
+      if (!confirm(`নম্বরটি (${targetNumber}) রিপ্লেস করে নতুন একটি নম্বর নিতে চান?`)) return;
+
+      try {
+        const res = await fetch('/api/replace-single', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            username: currentUser.username,
+            targetNumber: targetNumber
+          })
+        });
+        const data = await res.json();
+        if (data.success) {
+          currentUser.numbers = data.allNumbers;
+          localStorage.setItem("lamix_sms_user", JSON.stringify(currentUser));
+          renderGroupedNumbers();
+          showToast("নম্বর সফলভাবে রিপ্লেস হয়েছে!");
+        } else {
+          alert(data.error || "রিপ্লেস করা যায়নি!");
+        }
+      } catch (e) {
+        alert("সার্ভার সমস্যা!");
+      }
+    }
+
+    async function clearAllNumbers() {
+      if (!confirm("আপনি কি সমস্ত নম্বর সাইট থেকে মুছে ফেলতে চান?")) return;
+      try {
+        const res = await fetch('/api/clear-numbers', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username: currentUser.username })
+        });
+        const data = await res.json();
+        if (data.success) {
+          currentUser.numbers = [];
+          localStorage.setItem("lamix_sms_user", JSON.stringify(currentUser));
+          renderGroupedNumbers();
+          showToast("সমস্ত নম্বর মুছে ফেলা হয়েছে!");
+        }
+      } catch (e) {
+        alert("মুছতে সমস্যা হয়েছে!");
+      }
+    }
+
     async function loadRanges() {
       try {
         const res = await fetch('/api/ranges');
@@ -370,18 +575,16 @@
 
         if (availableRanges.length > 0) {
           availableRanges.forEach((r, idx) => {
-            const countryName = r.country || r.name || "Global Pool";
+            const countryName = r.country || r.name || "Israel LX";
             const rate = r.rate || r.payout || 0.05;
-            const code = r.code || r.prefix || getDialCode(countryName);
             select.innerHTML += `<option value="${idx}">${countryName} — Payout: $${parseFloat(rate).toFixed(2)} / SMS</option>`;
           });
         }
       } catch (e) {
-        document.getElementById('rangeSelect').innerHTML = '<option value="0">Tunisia LX — Payout: $0.05 / SMS</option>';
+        document.getElementById('rangeSelect').innerHTML = '<option value="0">Israel LX — Payout: $0.05 / SMS</option>';
       }
     }
 
-    // নতুন নম্বর বরাদ্দ (যে দেশ সিলেক্ট করবেন সেটাই সেভ হবে)
     async function allocateNumber() {
       if (!currentUser) return;
       const select = document.getElementById('rangeSelect');
@@ -390,7 +593,7 @@
       const btn = document.getElementById('btnAllocate');
 
       const target = availableRanges[selectedIdx] || { country: select.options[select.selectedIndex].text.split('—')[0].trim(), rate: 0.05 };
-      const countryName = target.country || target.name || "Tunisia LX";
+      const countryName = target.country || target.name || "Israel LX";
       const countryCode = target.code || target.prefix || getDialCode(countryName);
       const rate = target.rate || 0.05;
 
@@ -413,8 +616,8 @@
         if (data.success && data.allNumbers) {
           currentUser.numbers = data.allNumbers;
           localStorage.setItem("lamix_sms_user", JSON.stringify(currentUser));
-          renderGroupedNumbers();
-          alert(`${countryName} এর ${quantity} টি নম্বর সফলভাবে বরাদ্দ করা হয়েছে!`);
+          showToast(`✅ ${countryName} এর ${quantity} টি নম্বর বরাদ্দ হয়েছে!`);
+          switchTab('numbers');
         }
       } catch (e) {
         alert("নম্বর বরাদ্দে সমস্যা হয়েছে!");
@@ -424,7 +627,6 @@
       }
     }
 
-    // ওটিপি মেসেজ রিফ্রেশ
     async function fetchMessages(isManual = false) {
       if (!currentUser) return;
       const status = document.getElementById('statusText');
@@ -473,7 +675,6 @@
       }
     }
 
-    // প্রোফাইল মডাল
     function openProfileModal() {
       if (!currentUser) return;
       document.getElementById('profUser').innerText = currentUser.username;
