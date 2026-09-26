@@ -3,85 +3,281 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SMS Client Dashboard</title>
+  <title>Lamix SMS Client Dashboard</title>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, sans-serif; }
-    body { background-color: #0b1120; color: #f1f5f9; padding: 15px; padding-bottom: 70px; }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background-color: #0b1120; color: #f1f5f9; padding: 15px; padding-bottom: 75px; min-height: 100vh; }
     .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-    .header h2 { color: #38bdf8; font-size: 20px; }
+    .header h2 { color: #38bdf8; font-size: 19px; }
+    .header-user { display: flex; align-items: center; gap: 8px; font-size: 12px; }
     .card { background: #1e293b; border-radius: 12px; padding: 15px; margin-bottom: 15px; border: 1px solid #334155; }
-    .stats { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
-    .stat-box { background: #0f172a; padding: 10px; border-radius: 8px; text-align: center; }
+    .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    @media (min-width: 480px) {
+      .stats { grid-template-columns: 1fr 1fr 1fr 1fr; }
+    }
+    .stat-box { background: #0f172a; padding: 10px; border-radius: 8px; text-align: center; border: 1px solid #334155; }
     .stat-box div:first-child { font-size: 11px; color: #94a3b8; }
     .stat-val { font-size: 16px; font-weight: bold; color: #4ade80; margin-top: 4px; }
-    select, input { width: 100%; padding: 10px; border-radius: 6px; background: #0f172a; border: 1px solid #475569; color: #fff; margin-top: 5px; }
-    button { background: #2563eb; color: #fff; border: none; padding: 10px; border-radius: 8px; font-size: 14px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 10px; }
+    select, input { width: 100%; padding: 10px; border-radius: 6px; background: #0f172a; border: 1px solid #475569; color: #fff; margin-top: 5px; font-size: 13px; outline: none; }
+    select:focus, input:focus { border-color: #38bdf8; }
+    button { background: #2563eb; color: #fff; border: none; padding: 10px; border-radius: 8px; font-size: 14px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 10px; transition: 0.2s; }
+    button:hover { opacity: 0.9; }
+    button:disabled { opacity: 0.5; cursor: not-allowed; }
     .btn-refresh { background: #10b981; margin-bottom: 10px; }
+    .btn-logout { background: #ef4444; padding: 5px 10px; font-size: 11px; border-radius: 6px; width: auto; margin-top: 0; cursor: pointer; }
     table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 12px; }
     th, td { padding: 8px 4px; text-align: left; border-bottom: 1px solid #334155; }
     th { color: #94a3b8; }
-    .otp-text { background: #0284c7; padding: 2px 6px; border-radius: 4px; font-weight: bold; color: #fff; display: inline-block; word-break: break-all; }
-    .nav-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #0f172a; display: flex; justify-content: space-around; padding: 10px; border-top: 1px solid #334155; }
-    .nav-item { color: #94a3b8; text-decoration: none; font-size: 13px; font-weight: bold; }
+    .otp-text { background: #0284c7; padding: 3px 6px; border-radius: 4px; font-weight: bold; color: #fff; display: inline-block; word-break: break-all; font-family: monospace; }
+    .copy-btn { background: #334155; color: #38bdf8; border: 1px solid #475569; padding: 3px 6px; border-radius: 4px; font-size: 11px; cursor: pointer; width: auto; margin: 0; }
+    .nav-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #0f172a; display: flex; justify-content: space-around; padding: 10px; border-top: 1px solid #334155; z-index: 50; }
+    .nav-item { color: #94a3b8; text-decoration: none; font-size: 13px; font-weight: bold; cursor: pointer; }
     .nav-item.active { color: #38bdf8; }
+    .login-container { max-width: 380px; margin: 40px auto; }
+    .alert-box { background: rgba(239, 68, 68, 0.2); border: 1px solid #ef4444; color: #fca5a5; padding: 10px; border-radius: 8px; font-size: 12px; margin-bottom: 12px; display: none; }
   </style>
 </head>
 <body>
 
-  <div class="header">
-    <h2>Lamix SMS Panel</h2>
-    <a href="/admin.html" style="color: #f59e0b; text-decoration: none; font-size: 12px; border: 1px solid #f59e0b; padding: 4px 8px; border-radius: 6px;">⚙️ Admin</a>
-  </div>
+  <!-- ================= ১. ইউজার লগইন পেজ (লগইন না থাকলে এটি দেখাবে) ================= -->
+  <div id="loginSection" class="login-container">
+    <div class="card">
+      <h2 style="color: #38bdf8; text-align: center; margin-bottom: 6px; font-size: 20px;">🔐 Lamix User Login</h2>
+      <p style="font-size: 12px; color: #94a3b8; text-align: center; margin-bottom: 15px;">লামিক্স এজেন্ট প্যানেলের ইউজার ও পাসওয়ার্ড দিন</p>
 
-  <!-- ১. আয় ড্যাশবোর্ড -->
-  <div class="card">
-    <div class="stats">
-      <div class="stat-box"><div>Today Payout</div><div class="stat-val" id="todayEarn">$0.00</div></div>
-      <div class="stat-box"><div>7 Days Payout</div><div class="stat-val" id="sevenDayEarn">$0.00</div></div>
-      <div class="stat-box"><div>Total SMS</div><div class="stat-val" id="totalSms">0</div></div>
+      <div id="loginAlert" class="alert-box"></div>
+
+      <form id="loginForm">
+        <label style="font-size: 12px; color: #cbd5e1;">ইউজারনেম (Username)</label>
+        <input type="text" id="loginUsername" required placeholder="Lamix Username">
+
+        <div style="margin-top: 10px;">
+          <label style="font-size: 12px; color: #cbd5e1;">পাসওয়ার্ড (Password)</label>
+          <input type="password" id="loginPassword" required placeholder="Lamix Password">
+        </div>
+
+        <button type="submit" id="btnLogin">লগইন করুন</button>
+      </form>
     </div>
   </div>
 
-  <!-- ২. নম্বর বরাদ্দ ও রেঞ্জ নির্বাচন -->
-  <div class="card">
-    <h3 style="font-size: 15px; color: #38bdf8;">Allocate Numbers</h3>
-    <select id="rangeSelect">
-      <option>Loading ranges...</option>
-    </select>
-    <button onclick="alert('নম্বর রেঞ্জ সফলভাবে সিলেক্ট করা হয়েছে!')">+ Allocate Number</button>
-  </div>
-
-  <!-- ৩. লাইভ ওটিপি এবং রিফ্রেশ -->
-  <div class="card">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 6px;">
-      <h3 style="font-size: 15px; color: #38bdf8;">Live Messages / OTP</h3>
-      <span id="statusText" style="font-size: 11px; color: #4ade80;"></span>
+  <!-- ================= ২. ইউজার ড্যাশবোর্ড (লগইন করলে এটি দেখাবে) ================= -->
+  <div id="dashboardSection" style="display: none;">
+    <div class="header">
+      <h2>Lamix SMS Panel</h2>
+      <div class="header-user">
+        <span style="color: #38bdf8;">👤 <b id="userDisplay">User</b></span>
+        <button class="btn-logout" onclick="logout()">Logout</button>
+        <a href="/admin.html" style="color: #f59e0b; text-decoration: none; font-size: 12px; border: 1px solid #f59e0b; padding: 4px 8px; border-radius: 6px;">⚙️ Admin</a>
+      </div>
     </div>
-    <button class="btn-refresh" onclick="fetchMessages()">🔄 Refresh OTP</button>
 
-    <table>
-      <thead>
-        <tr>
-          <th>Time</th>
-          <th>Sender</th>
-          <th>Message</th>
-          <th>Payout</th>
-        </tr>
-      </thead>
-      <tbody id="messagesTable">
-        <tr><td colspan="4" style="text-align:center; color:#94a3b8; padding: 15px 0;">কোনো ওটিপি আসেনি। উপরে Refresh বাটনে চাপুন।</td></tr>
-      </tbody>
-    </table>
-  </div>
+    <!-- আয় ড্যাশবোর্ড -->
+    <div class="card">
+      <div class="stats">
+        <div class="stat-box"><div>Balance</div><div class="stat-val" id="userBalance">$0.00</div></div>
+        <div class="stat-box"><div>Today Payout</div><div class="stat-val" id="todayEarn">$0.00</div></div>
+        <div class="stat-box"><div>7 Days Payout</div><div class="stat-val" id="sevenDayEarn">$0.00</div></div>
+        <div class="stat-box"><div>Total SMS</div><div class="stat-val" id="totalSms">0</div></div>
+      </div>
+    </div>
 
-  <!-- বটম মেনু -->
-  <div class="nav-bar">
-    <a href="#" class="nav-item active">📊 Dashboard</a>
-    <a href="#" class="nav-item" onclick="fetchMessages()">💬 Messages</a>
-    <a href="/admin.html" class="nav-item">⚙️ Admin</a>
+    <!-- নম্বর বরাদ্দ ও রেঞ্জ নির্বাচন -->
+    <div class="card">
+      <h3 style="font-size: 15px; color: #38bdf8;">Allocate Numbers</h3>
+      <label style="font-size: 11px; color: #94a3b8; margin-top: 6px; display: block;">Select Range:</label>
+      <select id="rangeSelect">
+        <option>Loading ranges...</option>
+      </select>
+
+      <div style="display: flex; gap: 8px; margin-top: 5px;">
+        <input type="number" id="numQty" value="1" min="1" max="10" style="width: 80px;" title="পরিমাণ">
+        <button onclick="allocateNumber()" id="btnAllocate" style="margin-top: 5px; flex: 1;">+ Allocate Number</button>
+      </div>
+
+      <!-- বরাদ্দকৃত নম্বরের তালিকা -->
+      <div style="margin-top: 15px;">
+        <div style="font-size: 12px; color: #94a3b8; margin-bottom: 5px;">Your Active Numbers:</div>
+        <table style="margin-top: 0;">
+          <thead>
+            <tr>
+              <th>Number</th>
+              <th>Country</th>
+              <th>Rate</th>
+              <th style="text-align: right;">Action</th>
+            </tr>
+          </thead>
+          <tbody id="numbersTable">
+            <tr><td colspan="4" style="text-align:center; color:#64748b;">কোনো নম্বর নেওয়া হয়নি।</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- লাইভ ওটিপি এবং রিফ্রেশ -->
+    <div class="card">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 6px;">
+        <h3 style="font-size: 15px; color: #38bdf8;">Live Messages / OTP</h3>
+        <span id="statusText" style="font-size: 11px; color: #4ade80;"></span>
+      </div>
+      <button class="btn-refresh" id="btnRefresh" onclick="fetchMessages(true)">🔄 Refresh OTP</button>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Time</th>
+            <th>Number</th>
+            <th>Sender</th>
+            <th>Message</th>
+            <th>Payout</th>
+          </tr>
+        </thead>
+        <tbody id="messagesTable">
+          <tr><td colspan="5" style="text-align:center; color:#94a3b8; padding: 15px 0;">কোনো ওটিপি আসেনি। উপরে Refresh বাটনে চাপুন।</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- বটম মেনু -->
+    <div class="nav-bar">
+      <a href="#" class="nav-item active">📊 Dashboard</a>
+      <a href="javascript:void(0)" class="nav-item" onclick="fetchMessages(true)">💬 Messages</a>
+      <a href="/admin.html" class="nav-item">⚙️ Admin</a>
+      <a href="javascript:void(0)" class="nav-item" onclick="logout()" style="color: #ef4444;">🚪 Exit</a>
+    </div>
   </div>
 
   <script>
+    let currentUser = null;
+    let refreshTimer = null;
+
+    // ১. চেক করা ইউজার আগে থেকে লগইন আছে কি না
+    window.onload = function() {
+      const saved = localStorage.getItem("lamix_sms_user");
+      if (saved) {
+        try {
+          currentUser = JSON.parse(saved);
+          showDashboard();
+          syncUserFromServer();
+        } catch(e) {
+          showLogin();
+        }
+      } else {
+        showLogin();
+      }
+    };
+
+    function showLogin() {
+      document.getElementById('loginSection').style.display = 'block';
+      document.getElementById('dashboardSection').style.display = 'none';
+      if (refreshTimer) clearInterval(refreshTimer);
+    }
+
+    function showDashboard() {
+      document.getElementById('loginSection').style.display = 'none';
+      document.getElementById('dashboardSection').style.display = 'block';
+      document.getElementById('userDisplay').innerText = currentUser.username;
+      
+      updateStats();
+      renderNumbers();
+      loadRanges();
+      fetchMessages(false);
+
+      // প্রতি ৮ সেকেন্ড পরপর স্বয়ংক্রিয়ভাবে ওটিপি চেক
+      if (refreshTimer) clearInterval(refreshTimer);
+      refreshTimer = setInterval(() => {
+        fetchMessages(false);
+      }, 8000);
+    }
+
+    // ২. লগইন সাবমিট (লামিক্স ইউজার একাউন্ট দিয়ে)
+    document.getElementById('loginForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const alertBox = document.getElementById('loginAlert');
+      const btn = document.getElementById('btnLogin');
+      alertBox.style.display = 'none';
+
+      const username = document.getElementById('loginUsername').value.trim();
+      const password = document.getElementById('loginPassword').value;
+
+      btn.disabled = true;
+      btn.innerText = "যাচাই করা হচ্ছে...";
+
+      try {
+        const res = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password })
+        });
+        const data = await res.json();
+
+        if (data.success && data.user) {
+          currentUser = data.user;
+          localStorage.setItem("lamix_sms_user", JSON.stringify(currentUser));
+          showDashboard();
+        } else {
+          alertBox.innerText = data.error || "ভুল ইউজারনেম বা পাসওয়ার্ড!";
+          alertBox.style.display = 'block';
+        }
+      } catch (err) {
+        alertBox.innerText = "সার্ভারের সাথে সংযোগ করা সম্ভব হয়নি!";
+        alertBox.style.display = 'block';
+      } finally {
+        btn.disabled = false;
+        btn.innerText = "লগইন করুন";
+      }
+    });
+
+    // ৩. ব্যাকএন্ড থেকে ব্যালেন্স ও ডাটা সিঙ্ক
+    async function syncUserFromServer() {
+      if (!currentUser) return;
+      try {
+        const res = await fetch(`/api/user/profile/${encodeURIComponent(currentUser.username)}`);
+        const data = await res.json();
+        if (data.success && data.user) {
+          currentUser = data.user;
+          localStorage.setItem("lamix_sms_user", JSON.stringify(currentUser));
+          updateStats();
+          renderNumbers();
+        }
+      } catch (e) {}
+    }
+
+    // ৪. ব্যালেন্স ও স্ট্যাট আপডেট
+    function updateStats() {
+      if (!currentUser) return;
+      document.getElementById('userBalance').innerText = `$${(currentUser.balance || 0).toFixed(2)}`;
+      document.getElementById('todayEarn').innerText = `$${(currentUser.todayEarnings || 0).toFixed(2)}`;
+      document.getElementById('sevenDayEarn').innerText = `$${(currentUser.sevenDayEarnings || 0).toFixed(2)}`;
+      document.getElementById('totalSms').innerText = currentUser.totalSms || 0;
+    }
+
+    // ৫. নম্বর টেবিল রেন্ডার
+    function renderNumbers() {
+      const tbody = document.getElementById('numbersTable');
+      const nums = currentUser.numbers || [];
+      if (nums.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:#64748b;">কোনো নম্বর নেওয়া হয়নি।</td></tr>';
+        return;
+      }
+      tbody.innerHTML = nums.map(n => `
+        <tr>
+          <td style="color:#4ade80; font-weight:bold; font-family:monospace;">${n.number}</td>
+          <td>${n.country}</td>
+          <td style="color:#38bdf8;">$${(n.payout || 0.05).toFixed(2)}</td>
+          <td style="text-align:right;">
+            <button class="copy-btn" onclick="copyNumber('${n.number}')">📋 Copy</button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function copyNumber(num) {
+      navigator.clipboard.writeText(num);
+      alert("নম্বর কপি হয়েছে: " + num);
+    }
+
+    // ৬. রেঞ্জ লিস্ট লোড
     async function loadRanges() {
       try {
         const res = await fetch('/api/ranges');
@@ -94,43 +290,99 @@
           });
         }
       } catch (e) {
-        document.getElementById('rangeSelect').innerHTML = '<option>Global Pool - $0.05 / SMS</option>';
+        document.getElementById('rangeSelect').innerHTML = '<option value="us">Global Pool - $0.05 / SMS</option>';
       }
     }
 
-    async function fetchMessages() {
-      const status = document.getElementById('statusText');
-      status.innerText = "Checking...";
+    // ৭. নতুন নম্বর বরাদ্দ (Allocate Number)
+    async function allocateNumber() {
+      if (!currentUser) return;
+      const rangeId = document.getElementById('rangeSelect').value;
+      const quantity = document.getElementById('numQty').value || 1;
+      const btn = document.getElementById('btnAllocate');
+
+      btn.disabled = true;
+      btn.innerText = "বরাদ্দ হচ্ছে...";
+
       try {
-        const res = await fetch('/api/refresh-otp');
+        const res = await fetch('/api/allocate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username: currentUser.username, rangeId, quantity })
+        });
         const data = await res.json();
+        if (data.success && data.allNumbers) {
+          currentUser.numbers = data.allNumbers;
+          localStorage.setItem("lamix_sms_user", JSON.stringify(currentUser));
+          renderNumbers();
+          alert("সফলভাবে নম্বর বরাদ্দ করা হয়েছে!");
+        } else {
+          alert(data.error || "নম্বর পাওয়া যায়নি!");
+        }
+      } catch (e) {
+        alert("সার্ভার ত্রুটি!");
+      } finally {
+        btn.disabled = false;
+        btn.innerText = "+ Allocate Number";
+      }
+    }
+
+    // ৮. ওটিপি মেসেজ রিফ্রেশ ও চেক
+    async function fetchMessages(isManual = false) {
+      if (!currentUser) return;
+      const status = document.getElementById('statusText');
+      const btn = document.getElementById('btnRefresh');
+      if (isManual) {
+        status.innerText = "Checking...";
+        btn.innerText = "🔄 Refreshing...";
+      }
+
+      try {
+        const res = await fetch('/api/refresh-otp', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username: currentUser.username })
+        });
+        const data = await res.json();
+
         if (data.success) {
-          document.getElementById('todayEarn').innerText = `$${data.wallet.todayEarnings.toFixed(2)}`;
-          document.getElementById('sevenDayEarn').innerText = `$${data.wallet.sevenDayEarnings.toFixed(2)}`;
-          document.getElementById('totalSms').innerText = data.wallet.totalSms;
+          if (data.user) {
+            currentUser = data.user;
+            localStorage.setItem("lamix_sms_user", JSON.stringify(currentUser));
+            updateStats();
+          }
 
           const tbody = document.getElementById('messagesTable');
-          if (data.messages.length > 0) {
-            tbody.innerHTML = '';
-            data.messages.forEach(m => {
-              tbody.innerHTML += `
-                <tr>
-                  <td>${m.time}</td>
-                  <td><b>${m.sender}</b></td>
-                  <td><span class="otp-text">${m.text}</span></td>
-                  <td style="color:#4ade80;">+$${m.earned.toFixed(2)}</td>
-                </tr>`;
-            });
+          const msgs = data.messages || [];
+          if (msgs.length > 0) {
+            tbody.innerHTML = msgs.map(m => `
+              <tr>
+                <td>${m.time}</td>
+                <td style="color:#38bdf8; font-family:monospace;">${m.number || '-'}</td>
+                <td><b>${m.sender}</b></td>
+                <td><span class="otp-text">${m.text}</span></td>
+                <td style="color:#4ade80;">+$${(m.earned || 0.05).toFixed(2)}</td>
+              </tr>
+            `).join('');
+          } else {
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:#94a3b8; padding: 15px 0;">কোনো ওটিপি আসেনি।</td></tr>';
           }
           status.innerText = data.newCount > 0 ? `+${data.newCount} New SMS!` : "Up to date";
         }
       } catch (e) {
         status.innerText = "Error refreshing";
+      } finally {
+        if (isManual) btn.innerText = "🔄 Refresh OTP";
       }
     }
 
-    loadRanges();
-    fetchMessages();
+    // ৯. লগআউট ফাংশন
+    function logout() {
+      localStorage.removeItem("lamix_sms_user");
+      currentUser = null;
+      if (refreshTimer) clearInterval(refreshTimer);
+      showLogin();
+    }
   </script>
 </body>
 </html>
