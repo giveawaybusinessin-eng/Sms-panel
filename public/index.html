@@ -70,17 +70,17 @@
   <div id="loginSection" class="login-container">
     <div class="card">
       <h2 style="color: #38bdf8; text-align: center; margin-bottom: 6px; font-size: 20px;">🔐 Lamix User Login</h2>
-      <p style="font-size: 12px; color: #94a3b8; text-align: center; margin-bottom: 15px;">লামিক্সের ইউজার আইডি ও পাসওয়ার্ড দিন</p>
+      <p style="font-size: 12px; color: #94a3b8; text-align: center; margin-bottom: 15px;">লামিক্স এজেন্ট প্যানেলের ইউজার আইডি ও পাসওয়ার্ড দিন</p>
 
       <div id="loginAlert" class="alert-box"></div>
 
       <form id="loginForm">
         <label style="font-size: 12px; color: #cbd5e1;">ইউজারনেম (Username)</label>
-        <input type="text" id="loginUsername" required placeholder="যেমন: test101">
+        <input type="text" id="loginUsername" required placeholder="Lamix Client Username">
 
         <div style="margin-top: 10px;">
           <label style="font-size: 12px; color: #cbd5e1;">পাসওয়ার্ড (Password)</label>
-          <input type="password" id="loginPassword" required placeholder="আপনার পাসওয়ার্ড">
+          <input type="password" id="loginPassword" required placeholder="Lamix Password">
         </div>
 
         <button type="submit" id="btnLogin">লগইন করুন</button>
@@ -98,7 +98,6 @@
       </div>
     </div>
 
-    <!-- নোটিশ -->
     <div class="lamix-notice">
       ⏰ <b>Lamix নিয়ম:</b> প্রতিদিন সন্ধ্যা ৬:০০ টায় সমস্ত নম্বর স্বয়ংক্রিয়ভাবে রিসেট হয়ে যায়। নতুন নম্বর পেতে 'Replace' চাপুন।
     </div>
@@ -114,7 +113,6 @@
         </div>
       </div>
 
-      <!-- নম্বর বরাদ্দ বক্স -->
       <div class="card">
         <h3 style="font-size: 15px; color: #38bdf8;">Allocate Numbers</h3>
         <label style="font-size: 11px; color: #94a3b8; margin-top: 6px; display: block;">Select Range (লামিক্স রিয়েল রেট):</label>
@@ -128,7 +126,7 @@
         </div>
         
         <p style="font-size: 11px; color: #94a3b8; margin-top: 10px;">
-          💡 নম্বরগুলো দেখতে নিচের <b style="color:#38bdf8;">'📱 Numbers'</b> মেনুতে যান। সেখান থেকে কোডসহ বা কোড ছাড়া কপি করতে পারবেন।
+          💡 নম্বরগুলো দেখতে নিচের <b style="color:#38bdf8;">'📱 Numbers'</b> মেনুতে যান।
         </p>
       </div>
     </div>
@@ -211,7 +209,6 @@
     function detectDialCode(str) {
       if (!str) return "+213";
       const s = String(str).toLowerCase();
-      
       const match = String(str).match(/\\+(\\d{1,4})/);
       if (match) return "+" + match[1];
 
@@ -346,7 +343,7 @@
       }, 8000);
     }
 
-    // ================= ১০০% নিশ্চিত ইনস্ট্যান্ট লগইন ================= //
+    // ================= ১০০% নিশ্চিত ডিরেক্ট লগইন ================= //
     document.getElementById('loginForm').addEventListener('submit', async function(e) {
       e.preventDefault();
       const alertBox = document.getElementById('loginAlert');
@@ -365,7 +362,7 @@
       btn.disabled = true;
       btn.innerText = "লগইন হচ্ছে...";
 
-      // ১. সরাসরি ফ্রন্টএন্ডে লগইন তৈরি (সার্ভার স্লো থাকলেও কোনো বাধা নেই)
+      // ১. ক্লায়েন্টে ডিরেক্ট ইউজার তৈরি
       currentUser = {
         username: username,
         password: password,
@@ -386,10 +383,16 @@
         const data = await res.json();
         if (data.success && data.user) {
           currentUser = cleanOldUSNumbers(data.user);
+        } else if (data.error && data.error.includes("ভুল পাসওয়ার্ড")) {
+          alertBox.innerText = data.error;
+          alertBox.style.display = 'block';
+          btn.disabled = false;
+          btn.innerText = "লগইন করুন";
+          return;
         }
       } catch (err) {}
 
-      // ৩. সাথে সাথে ড্যাশবোর্ডে প্রবেশ
+      // ৩. ড্যাশবোর্ডে প্রবেশ
       currentUser = cleanOldUSNumbers(currentUser);
       localStorage.setItem("lamix_sms_user", JSON.stringify(currentUser));
       btn.disabled = false;
@@ -518,10 +521,8 @@
       const code = currentNums[0] ? currentNums[0].code : detectDialCode(rangeName);
       const rate = currentNums[0] ? currentNums[0].payout : 0.05;
 
-      // রিলিজ করা
       currentUser.numbers = currentUser.numbers.filter(n => (n.range || n.country) !== rangeName);
 
-      // রিপ্লেস হলে নতুন ফ্রেশ নম্বর দেওয়া
       if (action === 'replace') {
         let freshList = [];
         for (let i = 0; i < qty; i++) {
@@ -542,7 +543,6 @@
       renderGroupedNumbers();
       showToast(action === 'replace' ? `${qty} টি নতুন নম্বর রিপ্লেস হয়েছে!` : `${qty} টি নম্বর রিলিজ হয়েছে!`);
 
-      // ব্যাকএন্ড ব্যাকআপ
       try {
         fetch('/api/replace-numbers', {
           method: 'POST',
@@ -632,7 +632,6 @@
       btn.disabled = true;
       btn.innerText = "বরাদ্দ হচ্ছে...";
 
-      // সরাসরি ফ্রন্টএন্ডে তৈরি (ইনস্ট্যান্ট রেসপন্স)
       let freshList = [];
       for (let i = 0; i < quantity; i++) {
         const rnd = Math.floor(10000000 + Math.random() * 90000000);
@@ -655,7 +654,6 @@
       showToast(`✅ ${rangeName} এর ${quantity} টি নম্বর বরাদ্দ হয়েছে!`);
       switchTab('numbers');
 
-      // ব্যাকএন্ড ব্যাকআপ
       try {
         fetch('/api/allocate', {
           method: 'POST',
