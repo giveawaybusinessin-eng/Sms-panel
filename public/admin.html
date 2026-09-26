@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Control Panel</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, sans-serif; }
+    body { background-color: #0b1120; color: #f1f5f9; padding: 15px; }
+    .card { background: #1e293b; border-radius: 12px; padding: 16px; margin-bottom: 15px; border: 1px solid #334155; }
+    h2 { color: #f59e0b; margin-bottom: 15px; }
+    label { font-size: 13px; color: #94a3b8; display: block; margin-top: 10px; }
+    input { width: 100%; padding: 10px; border-radius: 6px; background: #0f172a; border: 1px solid #475569; color: #fff; margin-top: 4px; }
+    button { background: #f59e0b; color: #000; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 15px; }
+    .back-btn { background: #334155; color: #fff; margin-top: 8px; }
+  </style>
+</head>
+<body>
+
+  <div class="card">
+    <h2>⚙️ Admin Control Panel</h2>
+
+    <label>Admin Security PIN (ডিফল্ট: 1234):</label>
+    <input type="password" id="adminPin" placeholder="Enter PIN">
+
+    <label>Lamix Base URL:</label>
+    <input type="text" id="baseUrl">
+
+    <label>Lamix API Token:</label>
+    <input type="text" id="apiToken">
+
+    <label>প্রতি ওটিপিতে কত সেন্ট যোগ হবে (USD):</label>
+    <input type="number" step="0.01" id="payoutRate" placeholder="0.05">
+
+    <button onclick="saveSettings()">Save & Update Settings</button>
+    <button class="back-btn" onclick="window.location.href='/'">⬅ Back to Dashboard</button>
+  </div>
+
+  <script>
+    async function loadSettings() {
+      const res = await fetch('/api/admin/get-config');
+      const data = await res.json();
+      document.getElementById('baseUrl').value = data.baseUrl;
+      document.getElementById('apiToken').value = data.token;
+      document.getElementById('payoutRate').value = data.defaultPayout;
+    }
+
+    async function saveSettings() {
+      const pin = document.getElementById('adminPin').value;
+      if (!pin) return alert('দয়া করে এডমিন পিন দিন!');
+
+      const res = await fetch('/api/admin/update-config', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          pin: pin,
+          baseUrl: document.getElementById('baseUrl').value,
+          token: document.getElementById('apiToken').value,
+          defaultPayout: document.getElementById('payoutRate').value
+        })
+      });
+
+      const data = await res.json();
+      if (data.success) {
+        alert(data.message);
+      } else {
+        alert(data.error);
+      }
+    }
+
+    loadSettings();
+  </script>
+</body>
+</html>
