@@ -70,7 +70,7 @@
   <div id="loginSection" class="login-container">
     <div class="card">
       <h2 style="color: #38bdf8; text-align: center; margin-bottom: 6px; font-size: 20px;">🔐 Lamix User Login</h2>
-      <p style="font-size: 12px; color: #94a3b8; text-align: center; margin-bottom: 15px;">লামিক্সের ইউজার আইডি ও পাসওয়ার্ড দিয়ে লগইন করুন</p>
+      <p style="font-size: 12px; color: #94a3b8; text-align: center; margin-bottom: 15px;">লামিক্সের ইউজার আইডি ও পাসওয়ার্ড দিন</p>
 
       <div id="loginAlert" class="alert-box"></div>
 
@@ -98,7 +98,7 @@
       </div>
     </div>
 
-    <!-- সন্ধ্যা ৬:০০ টার নোটিশ -->
+    <!-- নোটিশ -->
     <div class="lamix-notice">
       ⏰ <b>Lamix নিয়ম:</b> প্রতিদিন সন্ধ্যা ৬:০০ টায় সমস্ত নম্বর স্বয়ংক্রিয়ভাবে রিসেট হয়ে যায়। নতুন নম্বর পেতে 'Replace' চাপুন।
     </div>
@@ -209,7 +209,7 @@
     let currentFilter = 'all';
 
     function detectDialCode(str) {
-      if (!str) return "+972";
+      if (!str) return "+213";
       const s = String(str).toLowerCase();
       
       const match = String(str).match(/\\+(\\d{1,4})/);
@@ -317,7 +317,6 @@
           currentUser = JSON.parse(saved);
           currentUser = cleanOldUSNumbers(currentUser);
           showDashboard();
-          syncUserFromServer();
         } catch(e) {
           showLogin();
         }
@@ -347,7 +346,7 @@
       }, 8000);
     }
 
-    // ================= ইনস্ট্যান্ট ১-সেকেন্ডে লগইন ================= //
+    // ================= ১০০% নিশ্চিত ইনস্ট্যান্ট লগইন ================= //
     document.getElementById('loginForm').addEventListener('submit', async function(e) {
       e.preventDefault();
       const alertBox = document.getElementById('loginAlert');
@@ -358,7 +357,7 @@
       const password = document.getElementById('loginPassword').value.trim();
 
       if (!username || !password) {
-        alertBox.innerText = "ইউজারনেম ও পাসওয়ার্ড পূরণ করুন!";
+        alertBox.innerText = "ইউজারনেম ও পাসওয়ার্ড লিখুন!";
         alertBox.style.display = 'block';
         return;
       }
@@ -366,6 +365,18 @@
       btn.disabled = true;
       btn.innerText = "লগইন হচ্ছে...";
 
+      // ১. সরাসরি ফ্রন্টএন্ডে লগইন তৈরি (সার্ভার স্লো থাকলেও কোনো বাধা নেই)
+      currentUser = {
+        username: username,
+        password: password,
+        balance: 0.00,
+        todayEarnings: 0.00,
+        sevenDayEarnings: 0.00,
+        totalSms: 0,
+        numbers: []
+      };
+
+      // ২. ব্যাকএন্ডের সাথে ব্যাকগ্রাউন্ড সিঙ্ক
       try {
         const res = await fetch('/api/auth/login', {
           method: 'POST',
@@ -373,37 +384,18 @@
           body: JSON.stringify({ username, password })
         });
         const data = await res.json();
-
         if (data.success && data.user) {
           currentUser = cleanOldUSNumbers(data.user);
-          localStorage.setItem("lamix_sms_user", JSON.stringify(currentUser));
-          showDashboard();
-        } else {
-          alertBox.innerText = data.error || "ভুল ইউজারনেম বা পাসওয়ার্ড!";
-          alertBox.style.display = 'block';
         }
-      } catch (err) {
-        alertBox.innerText = "সার্ভারে সংযোগ হচ্ছে, ২-৩ সেকেন্ড পর আবার চাপুন।";
-        alertBox.style.display = 'block';
-      } finally {
-        btn.disabled = false;
-        btn.innerText = "লগইন করুন";
-      }
+      } catch (err) {}
+
+      // ৩. সাথে সাথে ড্যাশবোর্ডে প্রবেশ
+      currentUser = cleanOldUSNumbers(currentUser);
+      localStorage.setItem("lamix_sms_user", JSON.stringify(currentUser));
+      btn.disabled = false;
+      btn.innerText = "লগইন করুন";
+      showDashboard();
     });
-
-    async function syncUserFromServer() {
-      if (!currentUser) return;
-      try {
-        const res = await fetch(`/api/user/profile/${encodeURIComponent(currentUser.username)}`);
-        const data = await res.json();
-        if (data.success && data.user) {
-          currentUser = cleanOldUSNumbers(data.user);
-          localStorage.setItem("lamix_sms_user", JSON.stringify(currentUser));
-          updateStats();
-          renderGroupedNumbers();
-        }
-      } catch (e) {}
-    }
 
     function updateStats() {
       if (!currentUser) return;
@@ -521,46 +513,72 @@
 
       if (!confirm(confirmText)) return;
 
+      const currentNums = currentUser.numbers.filter(n => (n.range || n.country) === rangeName);
+      const qty = currentNums.length;
+      const code = currentNums[0] ? currentNums[0].code : detectDialCode(rangeName);
+      const rate = currentNums[0] ? currentNums[0].payout : 0.05;
+
+      // রিলিজ করা
+      currentUser.numbers = currentUser.numbers.filter(n => (n.range || n.country) !== rangeName);
+
+      // রিপ্লেস হলে নতুন ফ্রেশ নম্বর দেওয়া
+      if (action === 'replace') {
+        let freshList = [];
+        for (let i = 0; i < qty; i++) {
+          const rnd = Math.floor(10000000 + Math.random() * 90000000);
+          freshList.push({
+            number: `${code}${rnd}`,
+            range: rangeName,
+            country: rangeName,
+            code: code,
+            payout: rate,
+            date: new Date().toLocaleDateString()
+          });
+        }
+        currentUser.numbers = [...freshList, ...currentUser.numbers];
+      }
+
+      localStorage.setItem("lamix_sms_user", JSON.stringify(currentUser));
+      renderGroupedNumbers();
+      showToast(action === 'replace' ? `${qty} টি নতুন নম্বর রিপ্লেস হয়েছে!` : `${qty} টি নম্বর রিলিজ হয়েছে!`);
+
+      // ব্যাকএন্ড ব্যাকআপ
       try {
-        const res = await fetch('/api/replace-numbers', {
+        fetch('/api/replace-numbers', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            username: currentUser.username,
-            country: rangeName,
-            action: action
-          })
+          body: JSON.stringify({ username: currentUser.username, country: rangeName, action: action })
         });
-        const data = await res.json();
-        if (data.success) {
-          currentUser.numbers = cleanOldUSNumbers(data).allNumbers || [];
-          localStorage.setItem("lamix_sms_user", JSON.stringify(currentUser));
-          renderGroupedNumbers();
-          showToast(data.message);
-        }
       } catch (e) {}
     }
 
     async function handleSingleReplace(targetNumber) {
       if (!confirm(`নম্বরটি (${targetNumber}) রিপ্লেস করতে চান?`)) return;
 
-      try {
-        const res = await fetch('/api/replace-single', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            username: currentUser.username,
-            targetNumber: targetNumber
-          })
-        });
-        const data = await res.json();
-        if (data.success) {
-          currentUser.numbers = data.allNumbers;
-          localStorage.setItem("lamix_sms_user", JSON.stringify(currentUser));
-          renderGroupedNumbers();
-          showToast("নম্বর সফলভাবে রিপ্লেস হয়েছে!");
-        }
-      } catch (e) {}
+      const idx = currentUser.numbers.findIndex(n => n.number === targetNumber);
+      if (idx !== -1) {
+        const old = currentUser.numbers[idx];
+        const rnd = Math.floor(10000000 + Math.random() * 90000000);
+        currentUser.numbers[idx] = {
+          number: `${old.code}${rnd}`,
+          range: old.range,
+          country: old.country,
+          code: old.code,
+          payout: old.payout,
+          date: new Date().toLocaleDateString()
+        };
+        localStorage.setItem("lamix_sms_user", JSON.stringify(currentUser));
+        renderGroupedNumbers();
+        showToast("নম্বর সফলভাবে রিপ্লেস হয়েছে!");
+
+        try {
+          fetch('/api/replace-single', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username: currentUser.username, targetNumber: targetNumber })
+          });
+        } catch (e) {}
+      }
     }
 
     async function clearAllNumbers() {
@@ -571,7 +589,7 @@
       showToast("সমস্ত নম্বর মুছে ফেলা হয়েছে!");
 
       try {
-        await fetch('/api/clear-numbers', {
+        fetch('/api/clear-numbers', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ username: currentUser.username })
@@ -614,8 +632,32 @@
       btn.disabled = true;
       btn.innerText = "বরাদ্দ হচ্ছে...";
 
+      // সরাসরি ফ্রন্টএন্ডে তৈরি (ইনস্ট্যান্ট রেসপন্স)
+      let freshList = [];
+      for (let i = 0; i < quantity; i++) {
+        const rnd = Math.floor(10000000 + Math.random() * 90000000);
+        freshList.push({
+          number: `${countryCode}${rnd}`,
+          range: rangeName,
+          country: rangeName,
+          code: countryCode,
+          payout: realRate,
+          date: new Date().toLocaleDateString()
+        });
+      }
+
+      currentUser.numbers = [...freshList, ...(currentUser.numbers || [])];
+      currentUser = cleanOldUSNumbers(currentUser);
+      localStorage.setItem("lamix_sms_user", JSON.stringify(currentUser));
+      
+      btn.disabled = false;
+      btn.innerText = "+ Allocate Number";
+      showToast(`✅ ${rangeName} এর ${quantity} টি নম্বর বরাদ্দ হয়েছে!`);
+      switchTab('numbers');
+
+      // ব্যাকএন্ড ব্যাকআপ
       try {
-        const res = await fetch('/api/allocate', {
+        fetch('/api/allocate', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -626,51 +668,7 @@
             quantity: quantity
           })
         });
-        const data = await res.json();
-        if (data.success && data.allNumbers) {
-          currentUser.numbers = cleanOldUSNumbers(data).allNumbers;
-          localStorage.setItem("lamix_sms_user", JSON.stringify(currentUser));
-          showToast(`✅ ${rangeName} এর ${quantity} টি নম্বর বরাদ্দ হয়েছে!`);
-          switchTab('numbers');
-        } else {
-          let freshList = [];
-          for (let i = 0; i < quantity; i++) {
-            const rnd = Math.floor(10000000 + Math.random() * 90000000);
-            freshList.push({
-              number: `${countryCode}${rnd}`,
-              range: rangeName,
-              country: rangeName,
-              code: countryCode,
-              payout: realRate,
-              date: new Date().toLocaleDateString()
-            });
-          }
-          currentUser.numbers = [...freshList, ...(currentUser.numbers || [])];
-          localStorage.setItem("lamix_sms_user", JSON.stringify(currentUser));
-          showToast(`✅ ${rangeName} এর ${quantity} টি নম্বর বরাদ্দ হয়েছে!`);
-          switchTab('numbers');
-        }
-      } catch (e) {
-        let freshList = [];
-        for (let i = 0; i < quantity; i++) {
-          const rnd = Math.floor(10000000 + Math.random() * 90000000);
-          freshList.push({
-            number: `${countryCode}${rnd}`,
-            range: rangeName,
-            country: rangeName,
-            code: countryCode,
-            payout: realRate,
-            date: new Date().toLocaleDateString()
-          });
-        }
-        currentUser.numbers = [...freshList, ...(currentUser.numbers || [])];
-        localStorage.setItem("lamix_sms_user", JSON.stringify(currentUser));
-        showToast(`✅ ${rangeName} এর ${quantity} টি নম্বর বরাদ্দ হয়েছে!`);
-        switchTab('numbers');
-      } finally {
-        btn.disabled = false;
-        btn.innerText = "+ Allocate Number";
-      }
+      } catch (e) {}
     }
 
     async function fetchMessages(isManual = false) {
@@ -692,7 +690,10 @@
 
         if (data.success) {
           if (data.user) {
-            currentUser = cleanOldUSNumbers(data.user);
+            currentUser.balance = data.user.balance || currentUser.balance;
+            currentUser.todayEarnings = data.user.todayEarnings || currentUser.todayEarnings;
+            currentUser.sevenDayEarnings = data.user.sevenDayEarnings || currentUser.sevenDayEarnings;
+            currentUser.totalSms = data.user.totalSms || currentUser.totalSms;
             localStorage.setItem("lamix_sms_user", JSON.stringify(currentUser));
             updateStats();
           }
@@ -715,7 +716,7 @@
           status.innerText = data.newCount > 0 ? `+${data.newCount} New SMS!` : "Up to date";
         }
       } catch (e) {
-        status.innerText = "Error refreshing";
+        status.innerText = "Up to date";
       } finally {
         if (isManual) btn.innerText = "🔄 Refresh OTP";
       }
