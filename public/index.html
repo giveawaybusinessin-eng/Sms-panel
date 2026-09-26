@@ -76,11 +76,11 @@
 
       <form id="loginForm">
         <label style="font-size: 12px; color: #cbd5e1;">ইউজারনেম (Username)</label>
-        <input type="text" id="loginUsername" required placeholder="Lamix Username">
+        <input type="text" id="loginUsername" required placeholder="যেমন: test101">
 
         <div style="margin-top: 10px;">
           <label style="font-size: 12px; color: #cbd5e1;">পাসওয়ার্ড (Password)</label>
-          <input type="password" id="loginPassword" required placeholder="Lamix Password">
+          <input type="password" id="loginPassword" required placeholder="আপনার পাসওয়ার্ড">
         </div>
 
         <button type="submit" id="btnLogin">লগইন করুন</button>
@@ -295,7 +295,6 @@
       }
     }
 
-    // সেফ ফিল্টার
     function cleanOldUSNumbers(userObj) {
       if (!userObj) return userObj;
       if (Array.isArray(userObj.numbers)) {
@@ -348,7 +347,7 @@
       }, 8000);
     }
 
-    // ================= লগইন ফর্ম হ্যান্ডলার ================= //
+    // ================= ইনস্ট্যান্ট লগইন হ্যান্ডলার ================= //
     document.getElementById('loginForm').addEventListener('submit', async function(e) {
       e.preventDefault();
       const alertBox = document.getElementById('loginAlert');
@@ -365,7 +364,7 @@
       }
 
       btn.disabled = true;
-      btn.innerText = "যাচাই করা হচ্ছে...";
+      btn.innerText = "লগইন হচ্ছে...";
 
       try {
         const res = await fetch('/api/auth/login', {
@@ -384,7 +383,7 @@
           alertBox.style.display = 'block';
         }
       } catch (err) {
-        alertBox.innerText = "সার্ভার স্টার্ট হচ্ছে, ৫-১০ সেকেন্ড পর আবার চেষ্টা করুন!";
+        alertBox.innerText = "সার্ভারে সংযোগ হচ্ছে, ২-৩ সেকেন্ড পর আবার চাপুন।";
         alertBox.style.display = 'block';
       } finally {
         btn.disabled = false;
