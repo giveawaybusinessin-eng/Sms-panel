@@ -86,15 +86,8 @@
       color: #fff;
     }
 
-    .logo-text h1 {
-      font-size: 18px;
-      font-weight: 700;
-    }
-
-    .logo-text p {
-      font-size: 11px;
-      color: var(--text-muted);
-    }
+    .logo-text h1 { font-size: 18px; font-weight: 700; }
+    .logo-text p { font-size: 11px; color: var(--text-muted); }
 
     .nav-user {
       display: flex;
@@ -186,6 +179,166 @@
 
     .stat-info p { font-size: 12px; color: var(--text-muted); }
     .stat-info h3 { font-size: 20px; font-weight: 700; }
+
+    /* VIEW SWITCHER TABS (আলাদা সেকশন বাটন) */
+    .view-switcher-bar {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 20px;
+      background: var(--card-bg);
+      padding: 8px;
+      border-radius: 14px;
+      border: 1px solid var(--card-border);
+    }
+
+    .view-switch-btn {
+      flex: 1;
+      padding: 12px 18px;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.2s;
+    }
+
+    .view-switch-btn.active {
+      background: var(--primary);
+      color: #fff;
+      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.35);
+    }
+
+    /* DEDICATED LIVE SMS INBOX */
+    .inbox-card {
+      background: linear-gradient(180deg, #131d31 0%, #0e1626 100%);
+      border: 1px solid rgba(59, 130, 246, 0.35);
+      border-radius: 16px;
+      padding: 18px;
+      margin-bottom: 24px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+    }
+
+    .inbox-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+      gap: 10px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      padding-bottom: 12px;
+    }
+
+    .inbox-header h2 {
+      font-size: 17px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .live-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(16, 185, 129, 0.15);
+      color: #34d399;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .live-dot {
+      width: 8px;
+      height: 8px;
+      background-color: #34d399;
+      border-radius: 50%;
+      animation: blink 1.2s infinite;
+    }
+
+    @keyframes blink {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.3; transform: scale(0.8); }
+    }
+
+    .sms-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .sms-item-card {
+      background: var(--card-bg);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      border-radius: 12px;
+      padding: 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      animation: fadeIn 0.4s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .sms-info-box {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .sms-num-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-weight: 700;
+      color: #60a5fa;
+      font-size: 14px;
+    }
+
+    .sms-text-content {
+      font-size: 13px;
+      color: #f1f5f9;
+      background: rgba(0, 0, 0, 0.25);
+      padding: 6px 10px;
+      border-radius: 6px;
+      margin-top: 4px;
+    }
+
+    .sms-otp-action {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .big-otp-code {
+      font-size: 20px;
+      font-weight: 800;
+      color: #34d399;
+      background: rgba(16, 185, 129, 0.15);
+      padding: 4px 14px;
+      border-radius: 8px;
+      letter-spacing: 2px;
+      border: 1px dashed rgba(16, 185, 129, 0.4);
+    }
+
+    .inbox-empty {
+      text-align: center;
+      padding: 24px 12px;
+      color: var(--text-muted);
+      font-size: 13px;
+    }
 
     .control-card {
       background: var(--card-bg);
@@ -389,15 +542,6 @@
     .status-active { background: rgba(59, 130, 246, 0.15); color: #93c5fd; }
     .status-received { background: rgba(16, 185, 129, 0.15); color: #34d399; }
 
-    .otp-code {
-      font-size: 15px;
-      font-weight: 800;
-      color: #34d399;
-      background: rgba(16, 185, 129, 0.1);
-      padding: 2px 8px;
-      border-radius: 6px;
-    }
-
     .modal-overlay {
       position: fixed;
       inset: 0;
@@ -516,7 +660,7 @@
         </div>
       </div>
       <div class="nav-user" id="navUserSection" style="display: none;">
-        <div class="badge-balance" id="topBalanceBadge">$0.00</div>
+        <div class="badge-balance" id="topBalanceBadge">$0.000</div>
         <div class="user-pill" onclick="openProfileModal()">
           <span>👤</span>
           <span id="navUsername">User</span>
@@ -526,7 +670,7 @@
     </div>
   </header>
 
-  <!-- LOGIN SECTION (Universal IDs supported) -->
+  <!-- LOGIN SECTION -->
   <div class="login-wrapper" id="loginContainer">
     <div class="login-box" id="loginCard">
       <div class="login-logo">L</div>
@@ -575,7 +719,7 @@
         <div class="stat-icon purple">💰</div>
         <div class="stat-info">
           <p>বর্তমান ব্যালেন্স / আয়</p>
-          <h3 id="statTotalBalance">$0.00</h3>
+          <h3 id="statTotalBalance">$0.000</h3>
         </div>
       </div>
       <div class="stat-card">
@@ -587,48 +731,79 @@
       </div>
     </div>
 
-    <!-- CONTROLS -->
-    <div class="control-card">
-      <div class="control-header">
-        <h2>📥 নতুন নাম্বার এলোকেট করুন</h2>
-        <div style="display: flex; gap: 8px;">
+    <!-- MAIN VIEW SWITCHER (নম্বর সেকশন ও এসএমএস সেকশন আলাদা অপশন) -->
+    <div class="view-switcher-bar">
+      <button class="view-switch-btn active" id="tabBtnNumbers" onclick="switchMainView('numbers')">
+        📱 নম্বর সেকশন (Numbers Section)
+      </button>
+      <button class="view-switch-btn" id="tabBtnSms" onclick="switchMainView('sms')">
+        📩 লাইভ এসএমএস সেকশন (Live SMS Inbox)
+      </button>
+    </div>
+
+    <!-- 1. DEDICATED LIVE SMS INBOX VIEW -->
+    <div id="sectionLiveSms" class="inbox-card" style="display: none;">
+      <div class="inbox-header">
+        <h2>
+          <span>📩 লাইভ এসএমএস ও ওটিপি ইনবক্স</span>
+        </h2>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <div class="live-indicator">
+            <span class="live-dot"></span>
+            <span>লাইভ এসএমএস ট্র্যাকিং সক্রিয়</span>
+          </div>
           <button class="btn btn-outline btn-sm" onclick="refreshOtp()">
-            🔄 ওটিপি রিফ্রেশ (Refresh OTP)
+            🔄 রিফ্রেশ
           </button>
         </div>
       </div>
-      <div class="control-form">
-        <div class="form-group">
-          <label>কান্ট্রি রেঞ্জ ও পেআউট রেট নির্বাচন করুন</label>
-          <select id="rangeSelect">
-            <option value="">রেঞ্জ লোড হচ্ছে...</option>
-          </select>
+      <div id="liveSmsInboxList" class="sms-list">
+        <div class="inbox-empty">
+          ⏳ লাইভ এসএমএস এর জন্য অপেক্ষা করা হচ্ছে... মেসেজ আসার সাথে সাথে এখানে ওটিপি কোড ও সম্পূর্ণ এসএমএস ভেসে উঠবে।
         </div>
-        <div class="form-group">
-          <label>নাম্বার সংখ্যা</label>
-          <select id="countSelect">
-            <option value="5">৫ টি নাম্বার</option>
-            <option value="10">১০ টি নাম্বার</option>
-            <option value="15">১৫ টি নাম্বার</option>
-            <option value="20">২০ টি নাম্বার</option>
-          </select>
-        </div>
-        <button type="button" class="btn btn-primary" id="allocateBtn" onclick="handleAllocate()">
-          + নাম্বার যুক্ত করুন
-        </button>
-        <button type="button" class="btn btn-outline" onclick="loadUserNumbers()">
-          তালিকা রিফ্রেশ
-        </button>
       </div>
     </div>
 
-    <!-- FILTER TABS -->
-    <div class="tabs-wrapper" id="rangeTabs">
-      <button class="tab-btn active" onclick="filterRange('all')">সকল রেঞ্জ (All)</button>
-    </div>
+    <!-- 2. DEDICATED NUMBERS SECTION VIEW -->
+    <div id="sectionNumbersArea">
+      <!-- ALLOCATE CONTROLS -->
+      <div class="control-card">
+        <div class="control-header">
+          <h2>📥 নতুন নাম্বার এলোকেট করুন</h2>
+        </div>
+        <div class="control-form">
+          <div class="form-group">
+            <label>কান্ট্রি রেঞ্জ ও পেআউট রেট নির্বাচন করুন</label>
+            <select id="rangeSelect">
+              <option value="">রেঞ্জ লোড হচ্ছে...</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>নাম্বার সংখ্যা</label>
+            <select id="countSelect">
+              <option value="5">৫ টি নাম্বার</option>
+              <option value="10">১০ টি নাম্বার</option>
+              <option value="15">১৫ টি নাম্বার</option>
+              <option value="20">২০ টি নাম্বার</option>
+            </select>
+          </div>
+          <button type="button" class="btn btn-primary" id="allocateBtn" onclick="handleAllocate()">
+            + নাম্বার যুক্ত করুন
+          </button>
+          <button type="button" class="btn btn-outline" onclick="loadUserNumbers()">
+            তালিকা রিফ্রেশ
+          </button>
+        </div>
+      </div>
 
-    <!-- RANGE SECTIONS -->
-    <div id="rangeSectionsWrapper"></div>
+      <!-- FILTER TABS -->
+      <div class="tabs-wrapper" id="rangeTabs">
+        <button class="tab-btn active" onclick="filterRange('all')">সকল রেঞ্জ (All)</button>
+      </div>
+
+      <!-- RANGE NUMBER SECTIONS -->
+      <div id="rangeSectionsWrapper"></div>
+    </div>
 
   </main>
 
@@ -646,7 +821,7 @@
         </div>
         <div style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--card-border); padding-bottom: 10px;">
           <span style="color: var(--text-muted);">মোট ব্যালেন্স:</span>
-          <strong id="modalBalance" style="color: #34d399;">$0.00</strong>
+          <strong id="modalBalance" style="color: #34d399;">$0.000</strong>
         </div>
         <div style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--card-border); padding-bottom: 10px;">
           <span style="color: var(--text-muted);">সক্রিয় নাম্বার:</span>
@@ -668,7 +843,33 @@
   </div>
 
   <script>
-    // Universal Safe DOM Helpers
+    // Real Country Market Payout Defaults
+    const COUNTRY_PAYOUTS = {
+      'Algeria': 0.075,
+      'Tunisia': 0.090,
+      'Israel': 0.120,
+      'Morocco': 0.080,
+      'Egypt': 0.065,
+      'Bangladesh': 0.055,
+      'India': 0.050,
+      'Pakistan': 0.055,
+      'Indonesia': 0.070,
+      'Philippines': 0.075,
+      'Vietnam': 0.070,
+      'Nigeria': 0.060,
+      'Kenya': 0.065,
+      'South Africa': 0.085,
+      'Turkey': 0.080,
+      'Russia': 0.075,
+      'Kazakhstan': 0.070,
+      'Ukraine': 0.075,
+      'United Kingdom': 0.140,
+      'France': 0.150,
+      'Germany': 0.160,
+      'Brazil': 0.080,
+      'Colombia': 0.075
+    };
+
     function getSafeInput(idList) {
       for (let i = 0; i < idList.length; i++) {
         const el = document.getElementById(idList[i]);
@@ -687,22 +888,38 @@
       }
     }
 
-    function setHtml(idList, content) {
-      for (let i = 0; i < idList.length; i++) {
-        const el = document.getElementById(idList[i]);
-        if (el) el.innerHTML = content;
-      }
-    }
-
     let currentUser = null;
     let cachedRanges = [
-      { id: 'algeria_06', name: 'Algeria Mobilis 06', country: 'Algeria', dial_code: '+213', payout: 0.075 },
-      { id: 'tunisia_01', name: 'Tunisia Ooredoo 01', country: 'Tunisia', dial_code: '+216', payout: 0.09 },
-      { id: 'israel_054', name: 'Israel Partner 054', country: 'Israel', dial_code: '+972', payout: 0.12 },
-      { id: 'morocco_06', name: 'Morocco Telecom 06', country: 'Morocco', dial_code: '+212', payout: 0.08 }
+      { id: 'algeria_06', name: 'Algeria (T) 20Sep', country: 'Algeria', dial_code: '+213', payout: 0.075 },
+      { id: 'tunisia_01', name: 'Tunisia Ooredoo 01', country: 'Tunisia', dial_code: '+216', payout: 0.090 },
+      { id: 'israel_054', name: 'Israel Partner 054', country: 'Israel', dial_code: '+972', payout: 0.120 },
+      { id: 'morocco_06', name: 'Morocco Telecom 06', country: 'Morocco', dial_code: '+212', payout: 0.080 }
     ];
     let userNumbers = [];
     let currentFilter = 'all';
+    let currentMainView = 'numbers'; // 'numbers' or 'sms'
+
+    // Separate View Switcher Function
+    function switchMainView(view) {
+      currentMainView = view;
+      const btnNumbers = document.getElementById('tabBtnNumbers');
+      const btnSms = document.getElementById('tabBtnSms');
+      const secNumbers = document.getElementById('sectionNumbersArea');
+      const secSms = document.getElementById('sectionLiveSms');
+
+      if (view === 'numbers') {
+        btnNumbers.classList.add('active');
+        btnSms.classList.remove('active');
+        secNumbers.style.display = 'block';
+        secSms.style.display = 'none';
+      } else {
+        btnNumbers.classList.remove('active');
+        btnSms.classList.add('active');
+        secNumbers.style.display = 'none';
+        secSms.style.display = 'block';
+        refreshOtp(); // auto refresh when opening SMS tab
+      }
+    }
 
     function showToast(msg, icon) {
       icon = icon || '✅';
@@ -725,9 +942,8 @@
     setInterval(updateClock, 1000);
     updateClock();
 
-    // Check all storage variants
     window.addEventListener('DOMContentLoaded', function() {
-      const saved = localStorage.getItem('lamix_current_user') || localStorage.getItem('user') || localStorage.getItem('currentUser');
+      const saved = localStorage.getItem('lamix_current_user') || localStorage.getItem('user');
       if (saved) {
         try {
           currentUser = JSON.parse(saved);
@@ -757,9 +973,13 @@
       try { renderRangeSelect(); } catch(e) {}
       try { loadRanges(); } catch(e) {}
       try { loadUserNumbers(); } catch(e) {}
+
+      // Real-Time Live SMS polling every 4 seconds
+      if (!window.smsPollingInterval) {
+        window.smsPollingInterval = setInterval(refreshOtp, 4000);
+      }
     }
 
-    // Universal Instant Login
     function executeLogin() {
       const u = getSafeInput(['loginUsername', 'username', 'user']);
       const p = getSafeInput(['loginPassword', 'password', 'pass']);
@@ -769,40 +989,37 @@
         return;
       }
 
-      // Enter immediately in 0.01 second!
       currentUser = { username: u, balance: 0.00 };
       localStorage.setItem('lamix_current_user', JSON.stringify(currentUser));
       localStorage.setItem('user', JSON.stringify(currentUser));
       showToast('লগইন সফল হয়েছে!', '🎉');
       enterDashboard();
 
-      // Silent sync with server (handles any endpoint)
-      const endpoints = ['/api/auth/login', '/api/login'];
-      endpoints.forEach(function(ep) {
-        fetch(ep, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ username: u, password: p })
-        }).then(function(res) { return res.json(); }).then(function(data) {
-          if (data && data.success && data.user) {
-            currentUser.balance = data.user.balance || 0;
-            localStorage.setItem('lamix_current_user', JSON.stringify(currentUser));
-            renderStats();
-          }
-        }).catch(function() {});
-      });
+      fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: u, password: p })
+      }).then(function(res) { return res.json(); }).then(function(data) {
+        if (data && data.success && data.user) {
+          currentUser.balance = data.user.balance || 0;
+          localStorage.setItem('lamix_current_user', JSON.stringify(currentUser));
+          renderStats();
+        }
+      }).catch(function() {});
     }
 
-    // Function aliases so ANY button will trigger login
     window.login = executeLogin;
     window.loginNow = executeLogin;
     window.handleLogin = executeLogin;
     window.handleLoginSubmit = executeLogin;
 
     function logout() {
+      if (window.smsPollingInterval) {
+        clearInterval(window.smsPollingInterval);
+        window.smsPollingInterval = null;
+      }
       localStorage.removeItem('lamix_current_user');
       localStorage.removeItem('user');
-      localStorage.removeItem('currentUser');
       currentUser = null;
       userNumbers = [];
       closeProfileModal();
@@ -828,8 +1045,9 @@
       cachedRanges.forEach(function(r) {
         const opt = document.createElement('option');
         opt.value = r.id;
-        const rate = (typeof r.payout === 'number') ? r.payout.toFixed(3) : '0.050';
-        opt.innerText = r.country + ' (' + r.dial_code + ') - ' + r.name + ' | রেট: $' + rate + '/SMS';
+        const rateVal = (typeof r.payout === 'number') ? r.payout : (COUNTRY_PAYOUTS[r.country] || 0.075);
+        const rateStr = rateVal.toFixed(3);
+        opt.innerText = r.country + ' (' + r.dial_code + ') - ' + r.name + ' | রেট: $' + rateStr + '/SMS';
         select.appendChild(opt);
       });
     }
@@ -855,7 +1073,14 @@
         }
       } catch (e) {}
 
-      // Clean old US dummy numbers (+17...)
+      // Automatically upgrade any legacy 0.050 numbers to actual country rate
+      userNumbers.forEach(function(item) {
+        if (!item.payout || item.payout === 0.05) {
+          item.payout = COUNTRY_PAYOUTS[item.country] || 0.075;
+        }
+      });
+
+      // Filter dummy US numbers
       userNumbers = userNumbers.filter(function(n) {
         return !String(n.number || '').startsWith('+174') && !String(n.number || '').startsWith('+170');
       });
@@ -880,10 +1105,12 @@
       const selectedRange = cachedRanges.find(function(r) { return r.id === rangeId; }) || {
         id: rangeId,
         name: 'Standard Range',
-        country: 'Country',
-        dial_code: '+',
-        payout: 0.05
+        country: 'Algeria',
+        dial_code: '+213',
+        payout: 0.075
       };
+
+      const realPayout = selectedRange.payout || COUNTRY_PAYOUTS[selectedRange.country] || 0.075;
 
       if (btn) { btn.disabled = true; btn.innerText = 'এলোকেট হচ্ছে...'; }
 
@@ -897,7 +1124,7 @@
             rangeName: selectedRange.name,
             dialCode: selectedRange.dial_code,
             country: selectedRange.country,
-            payout: selectedRange.payout,
+            payout: realPayout,
             count: count
           })
         });
@@ -925,7 +1152,7 @@
           rangeId: selectedRange.id,
           rangeName: selectedRange.name,
           country: selectedRange.country,
-          payout: selectedRange.payout || 0.05,
+          payout: realPayout,
           otp: null,
           status: 'active',
           allocatedAt: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
@@ -1060,7 +1287,6 @@
 
     async function refreshOtp() {
       if (!currentUser) return;
-      showToast('ওটিপি চেক করা হচ্ছে...', '🔍');
       try {
         const res = await fetch('/api/refresh-otp?username=' + encodeURIComponent(currentUser.username));
         const data = await res.json();
@@ -1071,16 +1297,11 @@
             localStorage.setItem('lamix_current_user', JSON.stringify(currentUser));
           }
           if (data.newOtps > 0) {
-            showToast(data.newOtps + ' টি নতুন ওটিপি পাওয়া গেছে!', '🎉');
-          } else {
-            showToast('কোনো নতুন ওটিপি নেই', 'ℹ️');
+            showToast(`${data.newOtps} টি নতুন ওটিপি এসেছে!`, '🎉');
           }
           renderAll();
-          return;
         }
       } catch (e) {}
-      showToast('সার্ভার চেক সম্পন্ন', '✅');
-      renderAll();
     }
 
     function copyText(text, label) {
@@ -1118,6 +1339,7 @@
 
     function renderAll() {
       renderStats();
+      renderLiveInbox();
       renderTabs();
       renderSections();
     }
@@ -1139,6 +1361,51 @@
       if (elBal) elBal.innerText = '$' + bal;
       if (elRanges) elRanges.innerText = uniqueRanges.size;
       if (topBal) topBal.innerText = '$' + bal;
+    }
+
+    // Render Dedicated Live SMS Inbox
+    function renderLiveInbox() {
+      const container = document.getElementById('liveSmsInboxList');
+      if (!container) return;
+
+      const receivedItems = userNumbers.filter(function(n) { return !!n.otp; });
+
+      if (receivedItems.length === 0) {
+        container.innerHTML = `
+          <div class="inbox-empty">
+            ⏳ লাইভ এসএমএস এর জন্য অপেক্ষা করা হচ্ছে... মেসেজ আসার সাথে সাথে এখানে ওটিপি কোড ও সম্পূর্ণ এসএমএস ভেসে উঠবে।
+          </div>
+        `;
+        return;
+      }
+
+      let html = '';
+      receivedItems.forEach(function(item) {
+        const fullText = item.smsText || 'Verification code received.';
+        const time = item.smsTime || item.allocatedAt || '--:--';
+        html += `
+          <div class="sms-item-card">
+            <div class="sms-info-box">
+              <div class="sms-num-badge">
+                <span>📱 ${item.number}</span>
+                <span class="code-badge">${item.country}</span>
+                <span style="font-size: 11px; color: var(--text-muted); font-weight: normal;">• ${time}</span>
+              </div>
+              <div class="sms-text-content">
+                ${fullText}
+              </div>
+            </div>
+            <div class="sms-otp-action">
+              <span class="big-otp-code">${item.otp}</span>
+              <button class="btn btn-accent btn-sm" onclick="copyText('${item.otp}', 'ওটিপি কোড')">
+                📋 কপি ওটিপি
+              </button>
+            </div>
+          </div>
+        `;
+      });
+
+      container.innerHTML = html;
     }
 
     function renderTabs() {
@@ -1191,7 +1458,7 @@
             rangeName: n.rangeName,
             country: n.country,
             dialCode: n.dialCode,
-            payout: n.payout || 0.05,
+            payout: n.payout || COUNTRY_PAYOUTS[n.country] || 0.075,
             items: []
           };
         }
@@ -1202,7 +1469,8 @@
       Object.values(groups).forEach(function(g) {
         if (currentFilter !== 'all' && currentFilter !== g.rangeId) return;
 
-        const payoutText = (typeof g.payout === 'number') ? g.payout.toFixed(3) : '0.050';
+        const payoutVal = (typeof g.payout === 'number') ? g.payout : (COUNTRY_PAYOUTS[g.country] || 0.075);
+        const payoutText = payoutVal.toFixed(3);
 
         html += '<div class="range-group-card">' +
           '<div class="range-group-header">' +
@@ -1221,7 +1489,7 @@
           '</div>' +
           '<div class="numbers-table-container">' +
             '<table>' +
-              '<thead><tr><th>কান্ট্রি কোড সহ (+কোড)</th><th>কোড ছাড়া (Pure)</th><th>পেআউট</th><th>ওটিপি স্ট্যাটাস</th><th>সময়</th><th style="text-align: right;">একশন বাটন</th></tr></thead>' +
+              '<thead><tr><th>কান্ট্রি কোড সহ (+কোড)</th><th>কোড ছাড়া (Pure)</th><th>পেআউট</th><th>ওটিপি / এসএমএস</th><th>সময়</th><th style="text-align: right;">একশন বাটন</th></tr></thead>' +
               '<tbody>';
 
         g.items.forEach(function(item) {
@@ -1231,7 +1499,8 @@
             ? ('<span class="status-badge status-received">প্রাপ্ত: <span class="otp-code">' + item.otp + '</span></span>')
             : '<span class="status-badge status-active">⏳ অপেক্ষমাণ</span>';
 
-          const rateStr = (typeof item.payout === 'number') ? item.payout.toFixed(3) : payoutText;
+          const rateVal = item.payout || COUNTRY_PAYOUTS[item.country] || 0.075;
+          const rateStr = (typeof rateVal === 'number') ? rateVal.toFixed(3) : '0.075';
 
           html += '<tr>' +
             '<td class="num-full">' + item.number + '</td>' +
@@ -1276,4 +1545,4 @@
     }
   </script>
 </body>
-  </html>
+</html>
