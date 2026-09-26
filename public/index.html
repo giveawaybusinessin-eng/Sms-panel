@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SMS Client Dashboard</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, sans-serif; }
+    body { background-color: #0b1120; color: #f1f5f9; padding: 15px; padding-bottom: 70px; }
+    .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+    .header h2 { color: #38bdf8; font-size: 20px; }
+    .card { background: #1e293b; border-radius: 12px; padding: 15px; margin-bottom: 15px; border: 1px solid #334155; }
+    .stats { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+    .stat-box { background: #0f172a; padding: 10px; border-radius: 8px; text-align: center; }
+    .stat-box div:first-child { font-size: 11px; color: #94a3b8; }
+    .stat-val { font-size: 16px; font-weight: bold; color: #4ade80; margin-top: 4px; }
+    select, input { width: 100%; padding: 10px; border-radius: 6px; background: #0f172a; border: 1px solid #475569; color: #fff; margin-top: 5px; }
+    button { background: #2563eb; color: #fff; border: none; padding: 10px; border-radius: 8px; font-size: 14px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 10px; }
+    .btn-refresh { background: #10b981; margin-bottom: 10px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 12px; }
+    th, td { padding: 8px 4px; text-align: left; border-bottom: 1px solid #334155; }
+    th { color: #94a3b8; }
+    .otp-text { background: #0284c7; padding: 2px 6px; border-radius: 4px; font-weight: bold; color: #fff; display: inline-block; word-break: break-all; }
+    .nav-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #0f172a; display: flex; justify-content: space-around; padding: 10px; border-top: 1px solid #334155; }
+    .nav-item { color: #94a3b8; text-decoration: none; font-size: 13px; font-weight: bold; }
+    .nav-item.active { color: #38bdf8; }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <h2>Lamix SMS Panel</h2>
+    <a href="/admin.html" style="color: #f59e0b; text-decoration: none; font-size: 12px; border: 1px solid #f59e0b; padding: 4px 8px; border-radius: 6px;">⚙️ Admin</a>
+  </div>
+
+  <!-- ১. আয় ড্যাশবোর্ড -->
+  <div class="card">
+    <div class="stats">
+      <div class="stat-box"><div>Today Payout</div><div class="stat-val" id="todayEarn">$0.00</div></div>
+      <div class="stat-box"><div>7 Days Payout</div><div class="stat-val" id="sevenDayEarn">$0.00</div></div>
+      <div class="stat-box"><div>Total SMS</div><div class="stat-val" id="totalSms">0</div></div>
+    </div>
+  </div>
+
+  <!-- ২. নম্বর বরাদ্দ ও রেঞ্জ নির্বাচন -->
+  <div class="card">
+    <h3 style="font-size: 15px; color: #38bdf8;">Allocate Numbers</h3>
+    <select id="rangeSelect">
+      <option>Loading ranges...</option>
+    </select>
+    <button onclick="alert('নম্বর রেঞ্জ সফলভাবে সিলেক্ট করা হয়েছে!')">+ Allocate Number</button>
+  </div>
+
+  <!-- ৩. লাইভ ওটিপি এবং রিফ্রেশ -->
+  <div class="card">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 6px;">
+      <h3 style="font-size: 15px; color: #38bdf8;">Live Messages / OTP</h3>
+      <span id="statusText" style="font-size: 11px; color: #4ade80;"></span>
+    </div>
+    <button class="btn-refresh" onclick="fetchMessages()">🔄 Refresh OTP</button>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Time</th>
+          <th>Sender</th>
+          <th>Message</th>
+          <th>Payout</th>
+        </tr>
+      </thead>
+      <tbody id="messagesTable">
+        <tr><td colspan="4" style="text-align:center; color:#94a3b8; padding: 15px 0;">কোনো ওটিপি আসেনি। উপরে Refresh বাটনে চাপুন।</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- বটম মেনু -->
+  <div class="nav-bar">
+    <a href="#" class="nav-item active">📊 Dashboard</a>
+    <a href="#" class="nav-item" onclick="fetchMessages()">💬 Messages</a>
+    <a href="/admin.html" class="nav-item">⚙️ Admin</a>
+  </div>
+
+  <script>
+    async function loadRanges() {
+      try {
+        const res = await fetch('/api/ranges');
+        const data = await res.json();
+        const select = document.getElementById('rangeSelect');
+        select.innerHTML = '';
+        if (data.ranges && Array.isArray(data.ranges)) {
+          data.ranges.forEach(r => {
+            select.innerHTML += `<option value="${r.id}">${r.country || r.name} — Payout: $${r.rate || 0.05} / SMS</option>`;
+          });
+        }
+      } catch (e) {
+        document.getElementById('rangeSelect').innerHTML = '<option>Global Pool - $0.05 / SMS</option>';
+      }
+    }
+
+    async function fetchMessages() {
+      const status = document.getElementById('statusText');
+      status.innerText = "Checking...";
+      try {
+        const res = await fetch('/api/refresh-otp');
+        const data = await res.json();
+        if (data.success) {
+          document.getElementById('todayEarn').innerText = `$${data.wallet.todayEarnings.toFixed(2)}`;
+          document.getElementById('sevenDayEarn').innerText = `$${data.wallet.sevenDayEarnings.toFixed(2)}`;
+          document.getElementById('totalSms').innerText = data.wallet.totalSms;
+
+          const tbody = document.getElementById('messagesTable');
+          if (data.messages.length > 0) {
+            tbody.innerHTML = '';
+            data.messages.forEach(m => {
+              tbody.innerHTML += `
+                <tr>
+                  <td>${m.time}</td>
+                  <td><b>${m.sender}</b></td>
+                  <td><span class="otp-text">${m.text}</span></td>
+                  <td style="color:#4ade80;">+$${m.earned.toFixed(2)}</td>
+                </tr>`;
+            });
+          }
+          status.innerText = data.newCount > 0 ? `+${data.newCount} New SMS!` : "Up to date";
+        }
+      } catch (e) {
+        status.innerText = "Error refreshing";
+      }
+    }
+
+    loadRanges();
+    fetchMessages();
+  </script>
+</body>
+</html>
