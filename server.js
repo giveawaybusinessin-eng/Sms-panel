@@ -29,36 +29,24 @@ let users = {
 
 let receivedMessages = [];
 
-const DEFAULT_RANGES = [
-  { id: "il", country: "Israel LX", code: "+972", rate: 0.05 },
-  { id: "tn", country: "Tunisia LX", code: "+216", rate: 0.05 },
-  { id: "us", country: "United States", code: "+1", rate: 0.08 },
-  { id: "uk", country: "United Kingdom", code: "+44", rate: 0.07 },
-  { id: "bd", country: "Bangladesh Pool", code: "+880", rate: 0.05 },
-  { id: "in", country: "India Range", code: "+91", rate: 0.04 }
-];
-
-// ================= [লামিক্স অটো সন্ধ্যা ৬:০০ টায় রিসেট শিডিউলার] ================= //
+// প্রতিদিন সন্ধ্যা ৬:০০ টায় অটো রিসেট (বাংলাদেশ সময়)
 let lastResetDate = "";
 setInterval(() => {
   const now = new Date();
-  // বাংলাদেশ সময় (UTC+6) অনুযায়ী সন্ধ্যা ৬:০০ (18:00) চেক
-  const bdtString = now.toLocaleString("en-US", { timeZone: "Asia/Dhaka" });
-  const bdtDate = new Date(bdtString);
+  const bdtDate = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Dhaka" }));
   const hour = bdtDate.getHours();
   const minute = bdtDate.getMinutes();
   const dateKey = bdtDate.toDateString();
 
   if (hour === 18 && minute === 0 && lastResetDate !== dateKey) {
     lastResetDate = dateKey;
-    console.log("⏰ লামিক্স সন্ধ্যা ৬:০০ টা রিসেট ট্রিগার হয়েছে! সব নম্বর ক্লিয়ার করা হচ্ছে...");
     Object.keys(users).forEach(u => {
-      users[u].numbers = []; // সব নম্বর সাইট থেকে চলে যাবে
+      users[u].numbers = [];
     });
   }
 }, 30000);
 
-// ১. লামিক্স অ্যাকাউন্ট লগইন
+// ১. লগইন
 app.post("/api/auth/login", async (req, res) => {
   const { username, password } = req.body;
   if (!username || !password) {
@@ -117,7 +105,6 @@ app.post("/api/auth/login", async (req, res) => {
   res.status(401).json({ error: "ভুল ইউজারনেম বা পাসওয়ার্ড!" });
 });
 
-// ইউজার প্রোফাইল ডাটা
 app.get("/api/user/profile/:username", (req, res) => {
   const uKey = req.params.username && req.params.username.trim().toLowerCase();
   const user = users[uKey];
@@ -127,37 +114,54 @@ app.get("/api/user/profile/:username", (req, res) => {
   res.status(404).json({ error: "ইউজার পাওয়া যায়নি" });
 });
 
-// ২. রেঞ্জ লিস্ট
+// ২. লামিক্স থেকে রিয়েল রেটসহ রেঞ্জ লোড
 app.get("/api/ranges", async (req, res) => {
   try {
     const response = await axios.get(SYSTEM_CONFIG.RANGES_URL, { timeout: 6000 });
     let raw = response.data;
     let list = Array.isArray(raw) ? raw : (raw.ranges || raw.data || []);
-    if (list.length > 0) return res.json({ success: true, ranges: list });
+    
+    // লামিক্সের আসল পে-আউট রেট বের করা
+    const formatted = list.map(r => {
+      let realRate = r.payout ?? r.rate ?? r.price ?? r.client_price ?? r.client_rate ?? r.cost ?? r.amount ?? r.tariff;
+      if (!realRate || isNaN(parseFloat(realRate)) || parseFloat(realRate) <= 0) {
+        realRate = SYSTEM_CONFIG.DEFAULT_PAYOUT;
+      }
+      return {
+        ...r,
+        name: r.name || r.country || "Custom Range",
+        rate: parseFloat(realRate)
+      };
+    });
+
+    if (formatted.length > 0) return res.json({ success: true, ranges: formatted });
   } catch (err) {}
-  res.json({ success: true, ranges: DEFAULT_RANGES });
+
+  res.json({ success: true, ranges: [] });
 });
 
-// ৩. নম্বর বরাদ্দ
+// ৩. নম্বর বরাদ্দ (আসল রেটসহ সেভ হবে)
 app.post("/api/allocate", (req, res) => {
   const { username, countryName, countryCode, rate, quantity } = req.body;
   const user = users[username && username.trim().toLowerCase()];
   if (!user) return res.status(401).json({ error: "ইউজার পাওয়া যায়নি" });
 
-  const qty = parseInt(quantity) || 1;
-  const finalCountry = countryName ? countryName.trim() : "Custom Pool";
+  const qty = parseInt(quantity) || 10;
+  const finalRange = countryName ? countryName.trim() : "Custom Range";
   
   let finalCode = countryCode ? countryCode.toString().trim() : "+972";
   if (!finalCode.startsWith("+")) finalCode = "+" + finalCode;
 
-  const finalRate = parseFloat(rate) || SYSTEM_CONFIG.DEFAULT_PAYOUT;
+  // লামিক্সের আসল রেট
+  const finalRate = parseFloat(rate) > 0 ? parseFloat(rate) : SYSTEM_CONFIG.DEFAULT_PAYOUT;
 
   let newNumbers = [];
   for (let i = 0; i < qty; i++) {
     const randomSuffix = Math.floor(10000000 + Math.random() * 90000000);
     const numObj = {
       number: `${finalCode}${randomSuffix}`,
-      country: finalCountry,
+      range: finalRange,
+      country: finalRange,
       code: finalCode,
       payout: finalRate,
       date: new Date().toLocaleDateString()
@@ -169,36 +173,35 @@ app.post("/api/allocate", (req, res) => {
   res.json({ success: true, allNumbers: user.numbers });
 });
 
-// ৪. নম্বর রিপ্লেস (পুরোনো নম্বর নিয়ে নতুন নম্বর দেবে)
+// ৪. রিপ্লেস
 app.post("/api/replace-numbers", (req, res) => {
   const { username, country, action } = req.body;
   const user = users[username && username.trim().toLowerCase()];
   if (!user) return res.status(401).json({ error: "ইউজার পাওয়া যায়নি" });
 
   const countryLower = (country || "").trim().toLowerCase();
-  const matched = user.numbers.filter(n => (n.country || "").trim().toLowerCase() === countryLower);
+  const matched = user.numbers.filter(n => (n.range || n.country || "").trim().toLowerCase() === countryLower);
   const qty = matched.length;
 
   if (qty === 0) {
-    return res.status(400).json({ error: "এই দেশের কোনো নম্বর পাওয়া যায়নি!" });
+    return res.status(400).json({ error: "কোনো নম্বর পাওয়া যায়নি!" });
   }
 
   const sample = matched[0];
   const finalCode = sample.code || "+972";
   const finalRate = sample.payout || SYSTEM_CONFIG.DEFAULT_PAYOUT;
-  const finalCountry = sample.country;
+  const finalRange = sample.range || sample.country;
 
-  // পুরোনো নম্বরগুলো সাইট থেকে মুছে দেওয়া হলো
-  user.numbers = user.numbers.filter(n => (n.country || "").trim().toLowerCase() !== countryLower);
+  user.numbers = user.numbers.filter(n => (n.range || n.country || "").trim().toLowerCase() !== countryLower);
 
-  // রিপ্লেস অপশন হলে নতুন সমপরিমাণ নম্বর দেওয়া হবে
   if (action === "replace") {
     let freshNumbers = [];
     for (let i = 0; i < qty; i++) {
       const randomSuffix = Math.floor(10000000 + Math.random() * 90000000);
       freshNumbers.push({
         number: `${finalCode}${randomSuffix}`,
-        country: finalCountry,
+        range: finalRange,
+        country: finalRange,
         code: finalCode,
         payout: finalRate,
         date: new Date().toLocaleDateString()
@@ -209,12 +212,12 @@ app.post("/api/replace-numbers", (req, res) => {
 
   res.json({
     success: true,
-    message: action === "replace" ? `${qty} টি নম্বর রিপ্লেস হয়েছে!` : `${qty} টি নম্বর সাইট থেকে নিয়ে নেওয়া হয়েছে!`,
+    message: action === "replace" ? `${qty} টি নম্বর রিপ্লেস হয়েছে!` : `${qty} টি নম্বর রিলিজ হয়েছে!`,
     allNumbers: user.numbers
   });
 });
 
-// ৫. সিঙ্গেল একটি নম্বর রিপ্লেস
+// ৫. সিঙ্গেল রিপ্লেস
 app.post("/api/replace-single", (req, res) => {
   const { username, targetNumber } = req.body;
   const user = users[username && username.trim().toLowerCase()];
@@ -227,6 +230,7 @@ app.post("/api/replace-single", (req, res) => {
   const randomSuffix = Math.floor(10000000 + Math.random() * 90000000);
   const freshNum = {
     number: `${old.code || "+972"}${randomSuffix}`,
+    range: old.range || old.country,
     country: old.country,
     code: old.code || "+972",
     payout: old.payout,
@@ -237,22 +241,16 @@ app.post("/api/replace-single", (req, res) => {
   res.json({ success: true, newNumber: freshNum, allNumbers: user.numbers });
 });
 
-// ৬. নম্বর ক্লিয়ার
+// ৬. ক্লিয়ার
 app.post("/api/clear-numbers", (req, res) => {
-  const { username, country } = req.body;
+  const { username } = req.body;
   const user = users[username && username.trim().toLowerCase()];
   if (!user) return res.status(401).json({ error: "ইউজার পাওয়া যায়নি" });
-
-  if (country) {
-    user.numbers = user.numbers.filter(n => (n.country || "").trim().toLowerCase() !== country.trim().toLowerCase());
-  } else {
-    user.numbers = [];
-  }
-
-  res.json({ success: true, allNumbers: user.numbers });
+  user.numbers = [];
+  res.json({ success: true, allNumbers: [] });
 });
 
-// ৭. ওটিপি রিফ্রেশ
+// ৭. ওটিপি রিফ্রেশ ও ওই নম্বরের নির্দিষ্ট রেট অনুযায়ী টাকা যোগ
 app.post("/api/refresh-otp", async (req, res) => {
   const { username } = req.body;
   const user = users[username && username.trim().toLowerCase()];
@@ -266,7 +264,10 @@ app.post("/api/refresh-otp", async (req, res) => {
     messages.forEach(msg => {
       const exists = receivedMessages.some(m => m.id === msg.id);
       if (!exists && msg.id) {
-        const payout = SYSTEM_CONFIG.DEFAULT_PAYOUT;
+        // ওই নম্বরের নির্দিষ্ট আসল পে-আউট রেট নেওয়া
+        const matchedNum = user.numbers.find(n => n.number === msg.number);
+        const payout = matchedNum ? (matchedNum.payout || SYSTEM_CONFIG.DEFAULT_PAYOUT) : SYSTEM_CONFIG.DEFAULT_PAYOUT;
+
         user.balance += payout;
         user.todayEarnings += payout;
         user.sevenDayEarnings += payout;
@@ -274,7 +275,7 @@ app.post("/api/refresh-otp", async (req, res) => {
 
         receivedMessages.unshift({
           id: msg.id,
-          number: msg.number || (user.numbers[0] ? user.numbers[0].number : "Active Pool"),
+          number: msg.number || (user.numbers[0] ? user.numbers[0].number : "Active Range"),
           sender: msg.sender || msg.cli || "OTP Service",
           text: msg.text || msg.message || "Code: " + Math.floor(100000 + Math.random() * 900000),
           earned: payout,
