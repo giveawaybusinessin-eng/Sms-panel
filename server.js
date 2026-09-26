@@ -30,15 +30,35 @@ let users = {
 let receivedMessages = [];
 
 const DEFAULT_RANGES = [
+  { id: "il", country: "Israel LX", code: "+972", rate: 0.05 },
   { id: "tn", country: "Tunisia LX", code: "+216", rate: 0.05 },
   { id: "us", country: "United States", code: "+1", rate: 0.08 },
   { id: "uk", country: "United Kingdom", code: "+44", rate: 0.07 },
-  { id: "ca", country: "Canada", code: "+1", rate: 0.06 },
   { id: "bd", country: "Bangladesh Pool", code: "+880", rate: 0.05 },
   { id: "in", country: "India Range", code: "+91", rate: 0.04 }
 ];
 
-// ১. লামিক্স ক্লায়েন্ট অ্যাকাউন্ট ভেরিফিকেশন ও লগইন
+// ================= [লামিক্স অটো সন্ধ্যা ৬:০০ টায় রিসেট শিডিউলার] ================= //
+let lastResetDate = "";
+setInterval(() => {
+  const now = new Date();
+  // বাংলাদেশ সময় (UTC+6) অনুযায়ী সন্ধ্যা ৬:০০ (18:00) চেক
+  const bdtString = now.toLocaleString("en-US", { timeZone: "Asia/Dhaka" });
+  const bdtDate = new Date(bdtString);
+  const hour = bdtDate.getHours();
+  const minute = bdtDate.getMinutes();
+  const dateKey = bdtDate.toDateString();
+
+  if (hour === 18 && minute === 0 && lastResetDate !== dateKey) {
+    lastResetDate = dateKey;
+    console.log("⏰ লামিক্স সন্ধ্যা ৬:০০ টা রিসেট ট্রিগার হয়েছে! সব নম্বর ক্লিয়ার করা হচ্ছে...");
+    Object.keys(users).forEach(u => {
+      users[u].numbers = []; // সব নম্বর সাইট থেকে চলে যাবে
+    });
+  }
+}, 30000);
+
+// ১. লামিক্স অ্যাকাউন্ট লগইন
 app.post("/api/auth/login", async (req, res) => {
   const { username, password } = req.body;
   if (!username || !password) {
@@ -47,12 +67,10 @@ app.post("/api/auth/login", async (req, res) => {
 
   const uKey = username.trim().toLowerCase();
 
-  // ক) সিস্টেমে সেভ থাকলে সরাসরি লগইন
   if (users[uKey] && users[uKey].password === password) {
     return res.json({ success: true, user: users[uKey] });
   }
 
-  // খ) লামিক্স ক্লায়েন্ট তালিকা থেকে যাচাই
   let lamixVerified = false;
   try {
     const clientListRes = await axios.get(`https://panel.lamix.org/api/v1/clients?token=${SYSTEM_CONFIG.TOKEN}`, { timeout: 6000 });
@@ -64,19 +82,15 @@ app.post("/api/auth/login", async (req, res) => {
       return cUser === uKey && (!cPass || cPass === password);
     });
 
-    if (found) {
-      lamixVerified = true;
-    }
+    if (found) lamixVerified = true;
   } catch (e1) {}
 
-  // গ) বিকল্প লামিক্স অথ চেক
   if (!lamixVerified) {
     try {
       const lamixRes = await axios.post("https://panel.lamix.org/api/v1/auth/login", {
         username: username.trim(),
         password: password
       }, { timeout: 6000 });
-
       if (lamixRes.data && (lamixRes.data.token || lamixRes.data.success)) {
         lamixVerified = true;
       }
@@ -100,10 +114,10 @@ app.post("/api/auth/login", async (req, res) => {
     return res.json({ success: true, user: users[uKey] });
   }
 
-  res.status(401).json({ error: "ভুল ইউজারনেম বা পাসওয়ার্ড! লামিক্সে ক্লায়েন্ট একাউন্ট তৈরি করা আছে কি না যাচাই করুন।" });
+  res.status(401).json({ error: "ভুল ইউজারনেম বা পাসওয়ার্ড!" });
 });
 
-// ইউজার প্রোফাইল সিঙ্ক
+// ইউজার প্রোফাইল ডাটা
 app.get("/api/user/profile/:username", (req, res) => {
   const uKey = req.params.username && req.params.username.trim().toLowerCase();
   const user = users[uKey];
@@ -124,7 +138,7 @@ app.get("/api/ranges", async (req, res) => {
   res.json({ success: true, ranges: DEFAULT_RANGES });
 });
 
-// ৩. নম্বর বরাদ্দ (সঠিক দেশ এবং কোডসহ তৈরি হবে)
+// ৩. নম্বর বরাদ্দ
 app.post("/api/allocate", (req, res) => {
   const { username, countryName, countryCode, rate, quantity } = req.body;
   const user = users[username && username.trim().toLowerCase()];
@@ -133,18 +147,18 @@ app.post("/api/allocate", (req, res) => {
   const qty = parseInt(quantity) || 1;
   const finalCountry = countryName ? countryName.trim() : "Custom Pool";
   
-  let finalCode = countryCode ? countryCode.toString().trim() : "+1";
+  let finalCode = countryCode ? countryCode.toString().trim() : "+972";
   if (!finalCode.startsWith("+")) finalCode = "+" + finalCode;
 
   const finalRate = parseFloat(rate) || SYSTEM_CONFIG.DEFAULT_PAYOUT;
 
   let newNumbers = [];
   for (let i = 0; i < qty; i++) {
-    // ৭ থেকে ৮ ডিজিটের র্যান্ডম নম্বর
     const randomSuffix = Math.floor(10000000 + Math.random() * 90000000);
     const numObj = {
       number: `${finalCode}${randomSuffix}`,
       country: finalCountry,
+      code: finalCode,
       payout: finalRate,
       date: new Date().toLocaleDateString()
     };
@@ -155,7 +169,90 @@ app.post("/api/allocate", (req, res) => {
   res.json({ success: true, allNumbers: user.numbers });
 });
 
-// ৪. ওটিপি রিফ্রেশ ও ব্যালেন্স যোগ
+// ৪. নম্বর রিপ্লেস (পুরোনো নম্বর নিয়ে নতুন নম্বর দেবে)
+app.post("/api/replace-numbers", (req, res) => {
+  const { username, country, action } = req.body;
+  const user = users[username && username.trim().toLowerCase()];
+  if (!user) return res.status(401).json({ error: "ইউজার পাওয়া যায়নি" });
+
+  const countryLower = (country || "").trim().toLowerCase();
+  const matched = user.numbers.filter(n => (n.country || "").trim().toLowerCase() === countryLower);
+  const qty = matched.length;
+
+  if (qty === 0) {
+    return res.status(400).json({ error: "এই দেশের কোনো নম্বর পাওয়া যায়নি!" });
+  }
+
+  const sample = matched[0];
+  const finalCode = sample.code || "+972";
+  const finalRate = sample.payout || SYSTEM_CONFIG.DEFAULT_PAYOUT;
+  const finalCountry = sample.country;
+
+  // পুরোনো নম্বরগুলো সাইট থেকে মুছে দেওয়া হলো
+  user.numbers = user.numbers.filter(n => (n.country || "").trim().toLowerCase() !== countryLower);
+
+  // রিপ্লেস অপশন হলে নতুন সমপরিমাণ নম্বর দেওয়া হবে
+  if (action === "replace") {
+    let freshNumbers = [];
+    for (let i = 0; i < qty; i++) {
+      const randomSuffix = Math.floor(10000000 + Math.random() * 90000000);
+      freshNumbers.push({
+        number: `${finalCode}${randomSuffix}`,
+        country: finalCountry,
+        code: finalCode,
+        payout: finalRate,
+        date: new Date().toLocaleDateString()
+      });
+    }
+    user.numbers = [...freshNumbers, ...user.numbers];
+  }
+
+  res.json({
+    success: true,
+    message: action === "replace" ? `${qty} টি নম্বর রিপ্লেস হয়েছে!` : `${qty} টি নম্বর সাইট থেকে নিয়ে নেওয়া হয়েছে!`,
+    allNumbers: user.numbers
+  });
+});
+
+// ৫. সিঙ্গেল একটি নম্বর রিপ্লেস
+app.post("/api/replace-single", (req, res) => {
+  const { username, targetNumber } = req.body;
+  const user = users[username && username.trim().toLowerCase()];
+  if (!user) return res.status(401).json({ error: "ইউজার পাওয়া যায়নি" });
+
+  const idx = user.numbers.findIndex(n => n.number === targetNumber);
+  if (idx === -1) return res.status(404).json({ error: "নম্বরটি পাওয়া যায়নি" });
+
+  const old = user.numbers[idx];
+  const randomSuffix = Math.floor(10000000 + Math.random() * 90000000);
+  const freshNum = {
+    number: `${old.code || "+972"}${randomSuffix}`,
+    country: old.country,
+    code: old.code || "+972",
+    payout: old.payout,
+    date: new Date().toLocaleDateString()
+  };
+
+  user.numbers[idx] = freshNum;
+  res.json({ success: true, newNumber: freshNum, allNumbers: user.numbers });
+});
+
+// ৬. নম্বর ক্লিয়ার
+app.post("/api/clear-numbers", (req, res) => {
+  const { username, country } = req.body;
+  const user = users[username && username.trim().toLowerCase()];
+  if (!user) return res.status(401).json({ error: "ইউজার পাওয়া যায়নি" });
+
+  if (country) {
+    user.numbers = user.numbers.filter(n => (n.country || "").trim().toLowerCase() !== country.trim().toLowerCase());
+  } else {
+    user.numbers = [];
+  }
+
+  res.json({ success: true, allNumbers: user.numbers });
+});
+
+// ৭. ওটিপি রিফ্রেশ
 app.post("/api/refresh-otp", async (req, res) => {
   const { username } = req.body;
   const user = users[username && username.trim().toLowerCase()];
@@ -190,47 +287,6 @@ app.post("/api/refresh-otp", async (req, res) => {
     res.json({ success: true, newCount, user, messages: receivedMessages });
   } catch (err) {
     res.json({ success: true, newCount: 0, user, messages: receivedMessages });
-  }
-});
-
-// ====================== [ADMIN ROUTES] ====================== //
-app.post("/api/admin/login", (req, res) => {
-  const { user, pass } = req.body;
-  if (user === SYSTEM_CONFIG.ADMIN_USER && pass === SYSTEM_CONFIG.ADMIN_PASS) {
-    res.json({ success: true, config: SYSTEM_CONFIG, users: Object.values(users) });
-  } else {
-    res.status(401).json({ error: "ভুল এডমিন আইডি বা পাসওয়ার্ড!" });
-  }
-});
-
-app.post("/api/admin/sync-lamix-clients", async (req, res) => {
-  const { adminUser, adminPass } = req.body;
-  if (adminUser !== SYSTEM_CONFIG.ADMIN_USER || adminPass !== SYSTEM_CONFIG.ADMIN_PASS) {
-    return res.status(401).json({ error: "অননুমোদিত!" });
-  }
-
-  try {
-    const clientListRes = await axios.get(`https://panel.lamix.org/api/v1/clients?token=${SYSTEM_CONFIG.TOKEN}`, { timeout: 6000 });
-    const clients = Array.isArray(clientListRes.data) ? clientListRes.data : (clientListRes.data.clients || []);
-    let added = 0;
-    clients.forEach(c => {
-      const uKey = (c.username || c.name || "").toLowerCase();
-      if (uKey && !users[uKey]) {
-        users[uKey] = {
-          username: c.username || c.name,
-          password: c.password || "lamix123",
-          balance: c.balance || 0.00,
-          todayEarnings: 0.00,
-          sevenDayEarnings: 0.00,
-          totalSms: 0,
-          numbers: []
-        };
-        added++;
-      }
-    });
-    return res.json({ success: true, message: `${added} টি ক্লায়েন্ট সিঙ্ক হয়েছে!`, users: Object.values(users) });
-  } catch (err) {
-    return res.json({ success: false, error: "ক্লায়েন্ট এপিআই রেসপন্স দেয়নি।" });
   }
 });
 
