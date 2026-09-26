@@ -16,7 +16,6 @@
       --primary-hover: #2563eb;
       --secondary: #6366f1;
       --accent: #10b981;
-      --accent-hover: #059669;
       --warning: #f59e0b;
       --danger: #ef4444;
       --text: #f8fafc;
@@ -185,15 +184,8 @@
     .stat-icon.purple { background: rgba(99, 102, 241, 0.15); color: #818cf8; }
     .stat-icon.orange { background: rgba(245, 158, 11, 0.15); color: #fbbf24; }
 
-    .stat-info p {
-      font-size: 12px;
-      color: var(--text-muted);
-    }
-
-    .stat-info h3 {
-      font-size: 20px;
-      font-weight: 700;
-    }
+    .stat-info p { font-size: 12px; color: var(--text-muted); }
+    .stat-info h3 { font-size: 20px; font-weight: 700; }
 
     .control-card {
       background: var(--card-bg);
@@ -212,10 +204,7 @@
       gap: 10px;
     }
 
-    .control-header h2 {
-      font-size: 16px;
-      font-weight: 700;
-    }
+    .control-header h2 { font-size: 16px; font-weight: 700; }
 
     .control-form {
       display: grid;
@@ -225,9 +214,7 @@
     }
 
     @media (max-width: 768px) {
-      .control-form {
-        grid-template-columns: 1fr;
-      }
+      .control-form { grid-template-columns: 1fr; }
     }
 
     .form-group label {
@@ -248,9 +235,7 @@
       outline: none;
     }
 
-    select:focus, input:focus {
-      border-color: var(--primary);
-    }
+    select:focus, input:focus { border-color: var(--primary); }
 
     .btn {
       padding: 10px 18px;
@@ -323,10 +308,7 @@
       flex-wrap: wrap;
     }
 
-    .range-title-info h3 {
-      font-size: 15px;
-      font-weight: 700;
-    }
+    .range-title-info h3 { font-size: 15px; font-weight: 700; }
 
     .code-badge {
       background: rgba(59, 130, 246, 0.2);
@@ -364,9 +346,7 @@
       flex-wrap: wrap;
     }
 
-    .numbers-table-container {
-      overflow-x: auto;
-    }
+    .numbers-table-container { overflow-x: auto; }
 
     table {
       width: 100%;
@@ -393,16 +373,8 @@
     tr:last-child td { border-bottom: none; }
     tr:hover td { background: rgba(255, 255, 255, 0.015); }
 
-    .num-full {
-      font-weight: 700;
-      color: #60a5fa;
-    }
-
-    .num-pure {
-      color: var(--text-muted);
-      font-family: monospace;
-      font-size: 13px;
-    }
+    .num-full { font-weight: 700; color: #60a5fa; }
+    .num-pure { color: var(--text-muted); font-family: monospace; font-size: 13px; }
 
     .status-badge {
       display: inline-flex;
@@ -414,15 +386,8 @@
       font-weight: 600;
     }
 
-    .status-active {
-      background: rgba(59, 130, 246, 0.15);
-      color: #93c5fd;
-    }
-
-    .status-received {
-      background: rgba(16, 185, 129, 0.15);
-      color: #34d399;
-    }
+    .status-active { background: rgba(59, 130, 246, 0.15); color: #93c5fd; }
+    .status-received { background: rgba(16, 185, 129, 0.15); color: #34d399; }
 
     .otp-code {
       font-size: 15px;
@@ -461,11 +426,6 @@
       margin-bottom: 20px;
     }
 
-    .modal-header h3 {
-      font-size: 18px;
-      font-weight: 700;
-    }
-
     .modal-close {
       background: transparent;
       border: none;
@@ -474,7 +434,7 @@
       cursor: pointer;
     }
 
-    .login-container {
+    .login-wrapper {
       display: flex;
       align-items: center;
       justify-content: center;
@@ -482,7 +442,7 @@
       padding: 20px;
     }
 
-    .login-card {
+    .login-box {
       background: var(--card-bg);
       border: 1px solid var(--card-border);
       border-radius: 16px;
@@ -506,24 +466,12 @@
       color: #fff;
     }
 
-    .login-card h2 {
-      font-size: 22px;
-      font-weight: 700;
-      margin-bottom: 6px;
-    }
-
-    .login-card p {
-      color: var(--text-muted);
-      font-size: 13px;
-      margin-bottom: 24px;
-    }
-
-    .input-field {
+    .input-group {
       text-align: left;
       margin-bottom: 16px;
     }
 
-    .input-field label {
+    .input-group label {
       display: block;
       font-size: 12px;
       color: var(--text-muted);
@@ -578,34 +526,32 @@
     </div>
   </header>
 
-  <!-- LOGIN BOX -->
-  <div class="login-container" id="loginContainer">
-    <div class="login-card">
+  <!-- LOGIN SECTION (Universal IDs supported) -->
+  <div class="login-wrapper" id="loginContainer">
+    <div class="login-box" id="loginCard">
       <div class="login-logo">L</div>
-      <h2>ক্লায়েন্ট লগইন</h2>
-      <p>Lamix এর ক্লায়েন্ট ইউজারনেম ও পাসওয়ার্ড দিন</p>
+      <h2 style="font-size: 22px; font-weight: 700; margin-bottom: 6px;">ক্লায়েন্ট লগইন</h2>
+      <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 24px;">Lamix এর ইউজারনেম ও পাসওয়ার্ড দিন</p>
 
-      <div class="input-field">
+      <div class="input-group">
         <label>ইউজারনেম (Username)</label>
         <input type="text" id="loginUsername" placeholder="e.g. test101" autocomplete="username">
       </div>
-      <div class="input-field">
+      <div class="input-group">
         <label>পাসওয়ার্ড (Password)</label>
-        <input type="password" id="loginPassword" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter') loginNow()">
+        <input type="password" id="loginPassword" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter') executeLogin()">
       </div>
-      <button type="button" class="btn btn-primary" id="loginBtn" onclick="loginNow()" style="width: 100%; margin-top: 10px; padding: 12px;">
+      <button type="button" class="btn btn-primary" id="loginBtn" onclick="executeLogin()" style="width: 100%; margin-top: 10px; padding: 12px;">
         লগইন করুন
       </button>
     </div>
   </div>
 
-  <!-- DASHBOARD -->
+  <!-- DASHBOARD SECTION -->
   <main class="container" id="dashboardContainer" style="display: none;">
 
     <div class="reset-banner">
-      <span>
-        ⚠️ <strong>অটো-রিসেট নোটিশ:</strong> প্রতিদিন সন্ধ্যা ৬:০০ টায় Lamix সার্ভারের নিয়মে লাইভ নাম্বার রিসেট হয়।
-      </span>
+      <span>⚠️ <strong>অটো-রিসেট নোটিশ:</strong> প্রতিদিন সন্ধ্যা ৬:০০ টায় Lamix সার্ভারের নিয়মে লাইভ নাম্বার রিসেট হয়।</span>
       <span id="liveClock" style="font-family: monospace; font-weight: 700;">--:--:--</span>
     </div>
 
@@ -722,6 +668,32 @@
   </div>
 
   <script>
+    // Universal Safe DOM Helpers
+    function getSafeInput(idList) {
+      for (let i = 0; i < idList.length; i++) {
+        const el = document.getElementById(idList[i]);
+        if (el && el.value !== undefined && el.value !== null) {
+          const val = String(el.value).trim();
+          if (val) return val;
+        }
+      }
+      return '';
+    }
+
+    function setDisplay(idList, mode) {
+      for (let i = 0; i < idList.length; i++) {
+        const el = document.getElementById(idList[i]);
+        if (el) el.style.display = mode;
+      }
+    }
+
+    function setHtml(idList, content) {
+      for (let i = 0; i < idList.length; i++) {
+        const el = document.getElementById(idList[i]);
+        if (el) el.innerHTML = content;
+      }
+    }
+
     let currentUser = null;
     let cachedRanges = [
       { id: 'algeria_06', name: 'Algeria Mobilis 06', country: 'Algeria', dial_code: '+213', payout: 0.075 },
@@ -741,24 +713,21 @@
       if (toastIcon) toastIcon.innerText = icon;
       if (toast) {
         toast.style.display = 'flex';
-        setTimeout(function() {
-          toast.style.display = 'none';
-        }, 3000);
+        setTimeout(function() { toast.style.display = 'none'; }, 3000);
       }
     }
 
     function updateClock() {
       const now = new Date();
       const clockEl = document.getElementById('liveClock');
-      if (clockEl) {
-        clockEl.innerText = now.toLocaleTimeString();
-      }
+      if (clockEl) clockEl.innerText = now.toLocaleTimeString();
     }
     setInterval(updateClock, 1000);
     updateClock();
 
+    // Check all storage variants
     window.addEventListener('DOMContentLoaded', function() {
-      const saved = localStorage.getItem('lamix_current_user');
+      const saved = localStorage.getItem('lamix_current_user') || localStorage.getItem('user') || localStorage.getItem('currentUser');
       if (saved) {
         try {
           currentUser = JSON.parse(saved);
@@ -766,64 +735,74 @@
             enterDashboard();
             return;
           }
-        } catch (e) {
-          localStorage.removeItem('lamix_current_user');
-        }
+        } catch (e) {}
       }
       showLogin();
     });
 
     function showLogin() {
-      document.getElementById('loginContainer').style.display = 'flex';
-      document.getElementById('dashboardContainer').style.display = 'none';
-      document.getElementById('navUserSection').style.display = 'none';
+      setDisplay(['loginContainer', 'loginSection', 'loginCard'], 'flex');
+      setDisplay(['dashboardContainer', 'dashboardSection'], 'none');
+      setDisplay(['navUserSection', 'navUser'], 'none');
     }
 
     function enterDashboard() {
-      document.getElementById('loginContainer').style.display = 'none';
-      document.getElementById('dashboardContainer').style.display = 'block';
-      document.getElementById('navUserSection').style.display = 'flex';
-      document.getElementById('navUsername').innerText = currentUser.username;
+      setDisplay(['loginContainer', 'loginSection', 'loginCard'], 'none');
+      setDisplay(['dashboardContainer', 'dashboardSection'], 'block');
+      setDisplay(['navUserSection', 'navUser'], 'flex');
 
-      renderRangeSelect();
-      loadRanges();
-      loadUserNumbers();
+      const unameEl = document.getElementById('navUsername') || document.getElementById('userName');
+      if (unameEl && currentUser) unameEl.innerText = currentUser.username;
+
+      try { renderRangeSelect(); } catch(e) {}
+      try { loadRanges(); } catch(e) {}
+      try { loadUserNumbers(); } catch(e) {}
     }
 
-    // 1. INSTANT 0.01s LOGIN (Never waits for sleeping server)
-    function loginNow() {
-      const uEl = document.getElementById('loginUsername');
-      const pEl = document.getElementById('loginPassword');
-      const u = uEl ? uEl.value.trim() : '';
-      const p = pEl ? pEl.value.trim() : '';
+    // Universal Instant Login
+    function executeLogin() {
+      const u = getSafeInput(['loginUsername', 'username', 'user']);
+      const p = getSafeInput(['loginPassword', 'password', 'pass']);
 
       if (!u) {
         showToast('ইউজারনেম দিন', '⚠️');
         return;
       }
 
-      // Enter immediately!
+      // Enter immediately in 0.01 second!
       currentUser = { username: u, balance: 0.00 };
       localStorage.setItem('lamix_current_user', JSON.stringify(currentUser));
+      localStorage.setItem('user', JSON.stringify(currentUser));
       showToast('লগইন সফল হয়েছে!', '🎉');
       enterDashboard();
 
-      // Silent sync with backend
-      fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: u, password: p })
-      }).then(function(res) { return res.json(); }).then(function(data) {
-        if (data && data.success && data.user) {
-          currentUser.balance = data.user.balance || 0;
-          localStorage.setItem('lamix_current_user', JSON.stringify(currentUser));
-          renderStats();
-        }
-      }).catch(function() {});
+      // Silent sync with server (handles any endpoint)
+      const endpoints = ['/api/auth/login', '/api/login'];
+      endpoints.forEach(function(ep) {
+        fetch(ep, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username: u, password: p })
+        }).then(function(res) { return res.json(); }).then(function(data) {
+          if (data && data.success && data.user) {
+            currentUser.balance = data.user.balance || 0;
+            localStorage.setItem('lamix_current_user', JSON.stringify(currentUser));
+            renderStats();
+          }
+        }).catch(function() {});
+      });
     }
+
+    // Function aliases so ANY button will trigger login
+    window.login = executeLogin;
+    window.loginNow = executeLogin;
+    window.handleLogin = executeLogin;
+    window.handleLoginSubmit = executeLogin;
 
     function logout() {
       localStorage.removeItem('lamix_current_user');
+      localStorage.removeItem('user');
+      localStorage.removeItem('currentUser');
       currentUser = null;
       userNumbers = [];
       closeProfileModal();
@@ -843,7 +822,7 @@
     }
 
     function renderRangeSelect() {
-      const select = document.getElementById('rangeSelect');
+      const select = document.getElementById('rangeSelect') || document.getElementById('range');
       if (!select) return;
       select.innerHTML = '<option value="">-- কান্ট্রি রেঞ্জ সিলেক্ট করুন --</option>';
       cachedRanges.forEach(function(r) {
@@ -857,12 +836,10 @@
 
     async function loadUserNumbers() {
       if (!currentUser) return;
-      const localKey = 'lamix_user_numbers_' + currentUser.username;
+      const localKey = 'lamix_nums_' + currentUser.username;
       const savedLocal = localStorage.getItem(localKey);
       if (savedLocal) {
-        try {
-          userNumbers = JSON.parse(savedLocal);
-        } catch(e) {}
+        try { userNumbers = JSON.parse(savedLocal); } catch(e) {}
       }
 
       try {
@@ -878,6 +855,7 @@
         }
       } catch (e) {}
 
+      // Clean old US dummy numbers (+17...)
       userNumbers = userNumbers.filter(function(n) {
         return !String(n.number || '').startsWith('+174') && !String(n.number || '').startsWith('+170');
       });
@@ -888,8 +866,10 @@
     async function handleAllocate() {
       if (!currentUser) return;
 
-      const rangeId = document.getElementById('rangeSelect').value;
-      const count = parseInt(document.getElementById('countSelect').value, 10) || 5;
+      const selEl = document.getElementById('rangeSelect') || document.getElementById('range');
+      const countEl = document.getElementById('countSelect') || document.getElementById('count');
+      const rangeId = selEl ? selEl.value : '';
+      const count = countEl ? (parseInt(countEl.value, 10) || 5) : 5;
       const btn = document.getElementById('allocateBtn');
 
       if (!rangeId) {
@@ -905,10 +885,7 @@
         payout: 0.05
       };
 
-      if (btn) {
-        btn.disabled = true;
-        btn.innerText = 'এলোকেট হচ্ছে...';
-      }
+      if (btn) { btn.disabled = true; btn.innerText = 'এলোকেট হচ্ছে...'; }
 
       try {
         const res = await fetch('/api/allocate', {
@@ -928,7 +905,7 @@
         const data = await res.json();
         if (data.success) {
           userNumbers = data.numbers || [];
-          localStorage.setItem('lamix_user_numbers_' + currentUser.username, JSON.stringify(userNumbers));
+          localStorage.setItem('lamix_nums_' + currentUser.username, JSON.stringify(userNumbers));
           showToast(data.message || (count + ' টি নাম্বার যুক্ত হয়েছে'), '🎉');
           renderAll();
           if (btn) { btn.disabled = false; btn.innerText = '+ নাম্বার যুক্ত করুন'; }
@@ -954,7 +931,7 @@
           allocatedAt: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
         });
       }
-      localStorage.setItem('lamix_user_numbers_' + currentUser.username, JSON.stringify(userNumbers));
+      localStorage.setItem('lamix_nums_' + currentUser.username, JSON.stringify(userNumbers));
       showToast(count + ' টি নাম্বার যুক্ত হয়েছে', '🎉');
       renderAll();
       if (btn) { btn.disabled = false; btn.innerText = '+ নাম্বার যুক্ত করুন'; }
@@ -1281,16 +1258,21 @@
 
     function openProfileModal() {
       if (!currentUser) return;
-      document.getElementById('modalUsername').innerText = currentUser.username;
+      const mUname = document.getElementById('modalUsername');
+      const mBal = document.getElementById('modalBalance');
+      const mNums = document.getElementById('modalNumbers');
+      if (mUname) mUname.innerText = currentUser.username;
       const bal = (typeof currentUser.balance === 'number') ? currentUser.balance.toFixed(3) : '0.000';
-      document.getElementById('modalBalance').innerText = '$' + bal;
-      document.getElementById('modalNumbers').innerText = userNumbers.length;
-      document.getElementById('profileModal').style.display = 'flex';
+      if (mBal) mBal.innerText = '$' + bal;
+      if (mNums) mNums.innerText = userNumbers.length;
+      const modal = document.getElementById('profileModal');
+      if (modal) modal.style.display = 'flex';
     }
 
     function closeProfileModal(e) {
       if (e && e.target !== e.currentTarget && !e.target.classList.contains('modal-close')) return;
-      document.getElementById('profileModal').style.display = 'none';
+      const modal = document.getElementById('profileModal');
+      if (modal) modal.style.display = 'none';
     }
   </script>
 </body>
