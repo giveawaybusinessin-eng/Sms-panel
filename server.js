@@ -8,7 +8,10 @@ const LAMIX_TOKEN = process.env.LAMIX_TOKEN || 'cSpzR9cFwnJjXECqcYTmqWvwDIfpyQ9w
 const LAMIX_BASE = 'https://panel.lamix.org/api/v1';
 const DATA_FILE = path.join(__dirname, 'users.json');
 
-// Anti-cache & CORS Headers (mobile will never get stuck on old code)
+// In-memory fallback cache
+let memoryUsers = {};
+
+// Built-in CORS & Anti-Cache Middleware (No external 'cors' package needed)
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
@@ -23,24 +26,26 @@ app.use((req, res, next) => {
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Serve static files from both public folder and root
+// Serve static files from both public and root directory
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.static(__dirname));
 
 function loadUsers() {
   try {
-    if (!fs.existsSync(DATA_FILE)) {
-      fs.writeFileSync(DATA_FILE, JSON.stringify({}), 'utf8');
-      return {};
+    if (fs.existsSync(DATA_FILE)) {
+      const raw = fs.readFileSync(DATA_FILE, 'utf8');
+      if (raw && raw.trim()) {
+        const parsed = JSON.parse(raw);
+        memoryUsers = { ...memoryUsers, ...parsed };
+        return memoryUsers;
+      }
     }
-    const raw = fs.readFileSync(DATA_FILE, 'utf8');
-    return JSON.parse(raw || '{}');
-  } catch (err) {
-    return {};
-  }
+  } catch (err) {}
+  return memoryUsers;
 }
 
 function saveUsers(data) {
+  memoryUsers = data;
   try {
     fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2), 'utf8');
   } catch (err) {}
@@ -97,10 +102,10 @@ function parsePayout(raw) {
   return isNaN(val) || val <= 0 ? 0.05 : val;
 }
 
-// 1. Instant User Login (Always accepts and auto-saves user)
-app.post('/api/auth/login', (req, res) => {
-  const username = String(req.body.username || '').trim();
-  const password = String(req.body.password || '').trim();
+// Universal Login Handler (Works with /api/auth/login, /api/login, /login)
+function handleLoginApi(req, res) {
+  const username = String(req.body.username || req.body.user || '').trim();
+  const password = String(req.body.password || req.body.pass || '').trim();
 
   if (!username) {
     return res.status(400).json({ success: false, error: 'ইউজারনেম দিন' });
@@ -130,14 +135,19 @@ app.post('/api/auth/login', (req, res) => {
     message: 'লগইন সফল হয়েছে',
     user: {
       username: username,
-      balance: users[username].balance,
+      balance: users[username].balance || 0.00,
       numbersCount: users[username].numbers.length
     }
   });
-});
+}
 
-// 2. Fetch Ranges from Lamix API using native fetch
-app.get('/api/ranges', async (req, res) => {
+app.post('/api/auth/login', handleLoginApi);
+app.post('/api/login', handleLoginApi);
+app.post('/login', handleLoginApi);
+app.post('/api/v1/login', handleLoginApi);
+
+// Ranges Endpoint (Native fetch - No axios needed)
+async function handleRangesApi(req, res) {
   try {
     const response = await fetch(LAMIX_BASE + '/ranges?token=' + LAMIX_TOKEN, {
       signal: AbortSignal.timeout(6000)
@@ -177,7 +187,9 @@ app.get('/api/ranges', async (req, res) => {
       ]
     });
   }
-});
+}
+app.get('/api/ranges', handleRangesApi);
+app.get('/api/v1/ranges', handleRangesApi);
 
 function generateNumberForRange(dialCode) {
   const cleanCode = String(dialCode || '+').replace(/[^0-9]/g, '');
@@ -191,9 +203,9 @@ function generateNumberForRange(dialCode) {
   };
 }
 
-// 3. User numbers
-app.get('/api/numbers', (req, res) => {
-  const username = String(req.query.username || '').trim();
+// User Numbers Endpoint
+function handleNumbersApi(req, res) {
+  const username = String(req.query.username || req.query.user || '').trim();
   if (!username) return res.status(400).json({ success: false, error: 'ইউজারনেম প্রয়োজন' });
 
   const users = loadUsers();
@@ -216,12 +228,14 @@ app.get('/api/numbers', (req, res) => {
     numbers: user.numbers || [],
     balance: user.balance || 0.00
   });
-});
+}
+app.get('/api/numbers', handleNumbersApi);
+app.get('/api/v1/numbers', handleNumbersApi);
 
-// 4. Allocate Numbers
-app.post('/api/allocate', (req, res) => {
+// Allocate Numbers
+function handleAllocateApi(req, res) {
   const { username, rangeId, rangeName, dialCode, country, payout, count } = req.body;
-  const u = String(username || '').trim();
+  const u = String(username || req.body.user || '').trim();
   if (!u) return res.status(400).json({ success: false, error: 'ইউজারনেম প্রয়োজন' });
 
   const users = loadUsers();
@@ -267,9 +281,11 @@ app.post('/api/allocate', (req, res) => {
     allocated: newNumbers,
     numbers: users[u].numbers
   });
-});
+}
+app.post('/api/allocate', handleAllocateApi);
+app.post('/api/v1/allocate', handleAllocateApi);
 
-// 5. Replace Numbers in Range
+// Replace Range Numbers
 app.post('/api/replace-numbers', (req, res) => {
   const { username, rangeId } = req.body;
   const u = String(username || '').trim();
@@ -305,7 +321,7 @@ app.post('/api/replace-numbers', (req, res) => {
   });
 });
 
-// 6. Replace Single Number
+// Replace Single Number
 app.post('/api/replace-single', (req, res) => {
   const { username, number } = req.body;
   const u = String(username || '').trim();
@@ -337,7 +353,7 @@ app.post('/api/replace-single', (req, res) => {
   });
 });
 
-// 7. Release Numbers
+// Release Numbers
 app.post('/api/release-numbers', (req, res) => {
   const { username, rangeId, number } = req.body;
   const u = String(username || '').trim();
@@ -360,9 +376,9 @@ app.post('/api/release-numbers', (req, res) => {
   });
 });
 
-// 8. Refresh OTP from Lamix Messages API
-app.all('/api/refresh-otp', async (req, res) => {
-  const username = String(req.query.username || req.body.username || '').trim();
+// Refresh OTP
+app.all(['/api/refresh-otp', '/api/v1/refresh-otp'], async (req, res) => {
+  const username = String(req.query.username || req.body.username || req.query.user || '').trim();
   const users = loadUsers();
   const user = users[username];
 
@@ -412,7 +428,7 @@ app.all('/api/refresh-otp', async (req, res) => {
   });
 });
 
-// Serve index.html from either public/ or root
+// Serve index.html safely
 app.get('*', (req, res) => {
   const p1 = path.join(__dirname, 'public', 'index.html');
   const p2 = path.join(__dirname, 'index.html');
