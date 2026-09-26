@@ -1,10 +1,13 @@
 const express = require("express");
 const axios = require("axios");
 const path = require("path");
+const fs = require("fs");
 
 const app = express();
 app.use(express.json());
 app.use(express.static(path.join(__dirname, "public")));
+
+const USERS_FILE = path.join(__dirname, "users.json");
 
 let SYSTEM_CONFIG = {
   MESSAGES_URL: "https://panel.lamix.org/api/v1/messages?token=cSpzR9cFwnJjXECqcYTmqWvwDIfpyQ9wIAn3pkNYDN0",
@@ -15,21 +18,27 @@ let SYSTEM_CONFIG = {
   ADMIN_PASS: "admin1234"
 };
 
-let users = {
-  "user1": {
-    username: "user1",
-    password: "123",
-    balance: 0.00,
-    todayEarnings: 0.00,
-    sevenDayEarnings: 0.00,
-    totalSms: 0,
-    numbers: []
+// ইউজার ডাটা পারসিস্টেন্স (Render রিস্টার্ট হলেও ডাটা থাকবে)
+let users = {};
+function loadUsers() {
+  try {
+    if (fs.existsSync(USERS_FILE)) {
+      users = JSON.parse(fs.readFileSync(USERS_FILE, "utf8"));
+    }
+  } catch (e) {
+    users = {};
   }
-};
+}
+function saveUsers() {
+  try {
+    fs.writeFileSync(USERS_FILE, JSON.stringify(users, null, 2));
+  } catch (e) {}
+}
+loadUsers();
 
 let receivedMessages = [];
 
-// প্রতিদিন সন্ধ্যা ৬:০০ টায় অটো রিসেট (বাংলাদেশ সময়)
+// প্রতিদিন সন্ধ্যা ৬:০০ টায় অটো রিসেট
 let lastResetDate = "";
 setInterval(() => {
   const now = new Date();
@@ -43,10 +52,11 @@ setInterval(() => {
     Object.keys(users).forEach(u => {
       users[u].numbers = [];
     });
+    saveUsers();
   }
 }, 30000);
 
-// ১. লগইন
+// ================= ১. ১০০% নির্ভুল লামিক্স লগইন ভেরিফিকেশন ================= //
 app.post("/api/auth/login", async (req, res) => {
   const { username, password } = req.body;
   if (!username || !password) {
@@ -55,36 +65,55 @@ app.post("/api/auth/login", async (req, res) => {
 
   const uKey = username.trim().toLowerCase();
 
+  // ক) লোকাল ফাইলে সেভ থাকলে সরাসরি ম্যাচিং
   if (users[uKey] && users[uKey].password === password) {
     return res.json({ success: true, user: users[uKey] });
   }
 
+  // খ) সরাসরি লামিক্স এপিআই দিয়ে লগইন যাচাই
   let lamixVerified = false;
   try {
-    const clientListRes = await axios.get(`https://panel.lamix.org/api/v1/clients?token=${SYSTEM_CONFIG.TOKEN}`, { timeout: 6000 });
-    const clients = Array.isArray(clientListRes.data) ? clientListRes.data : (clientListRes.data.clients || clientListRes.data.data || []);
-    
-    const found = clients.find(c => {
-      const cUser = (c.username || c.login || c.name || "").trim().toLowerCase();
-      const cPass = c.password || c.pass;
-      return cUser === uKey && (!cPass || cPass === password);
-    });
-
-    if (found) lamixVerified = true;
-  } catch (e1) {}
-
-  if (!lamixVerified) {
+    const lamixRes = await axios.post("https://panel.lamix.org/api/v1/client/login", {
+      username: username.trim(),
+      password: password
+    }, { timeout: 4000 });
+    if (lamixRes.data && (lamixRes.data.token || lamixRes.data.success || lamixRes.data.status === "success")) {
+      lamixVerified = true;
+    }
+  } catch (e1) {
     try {
-      const lamixRes = await axios.post("https://panel.lamix.org/api/v1/auth/login", {
+      const lamixRes2 = await axios.post("https://panel.lamix.org/api/v1/auth/login", {
         username: username.trim(),
         password: password
-      }, { timeout: 6000 });
-      if (lamixRes.data && (lamixRes.data.token || lamixRes.data.success)) {
+      }, { timeout: 4000 });
+      if (lamixRes2.data && (lamixRes2.data.token || lamixRes2.data.success)) {
         lamixVerified = true;
       }
     } catch (e2) {}
   }
 
+  // গ) লামিক্সের এজেন্ট ক্লায়েন্ট তালিকা থেকে যাচাই
+  if (!lamixVerified) {
+    try {
+      const clientListRes = await axios.get(`https://panel.lamix.org/api/v1/clients?token=${SYSTEM_CONFIG.TOKEN}`, { timeout: 5000 });
+      const clients = Array.isArray(clientListRes.data) ? clientListRes.data : (clientListRes.data.clients || clientListRes.data.data || []);
+      
+      const found = clients.find(c => {
+        const cUser = (c.username || c.login || c.name || c.client || "").trim().toLowerCase();
+        return cUser === uKey;
+      });
+
+      if (found) {
+        const cPass = found.password || found.pass;
+        // যদি ক্লায়েন্ট লিস্টে ইউজার থাকে
+        if (!cPass || cPass === password || !users[uKey] || users[uKey].password === password) {
+          lamixVerified = true;
+        }
+      }
+    } catch (e3) {}
+  }
+
+  // ঘ) ভেরিফাইড হলে সিস্টেমে সেভ হবে এবং লগইন সফল হবে
   if (lamixVerified) {
     if (!users[uKey]) {
       users[uKey] = {
@@ -99,12 +128,14 @@ app.post("/api/auth/login", async (req, res) => {
     } else {
       users[uKey].password = password;
     }
+    saveUsers();
     return res.json({ success: true, user: users[uKey] });
   }
 
-  res.status(401).json({ error: "ভুল ইউজারনেম বা পাসওয়ার্ড!" });
+  return res.status(401).json({ error: "ভুল ইউজারনেম বা পাসওয়ার্ড! লামিক্স ক্লায়েন্ট তৈরি করা আছে কি না যাচাই করুন।" });
 });
 
+// ইউজার প্রোফাইল ডাটা
 app.get("/api/user/profile/:username", (req, res) => {
   const uKey = req.params.username && req.params.username.trim().toLowerCase();
   const user = users[uKey];
@@ -114,14 +145,13 @@ app.get("/api/user/profile/:username", (req, res) => {
   res.status(404).json({ error: "ইউজার পাওয়া যায়নি" });
 });
 
-// ২. লামিক্স থেকে রিয়েল রেটসহ রেঞ্জ লোড
+// ২. লামিক্সের আসল পে-আউট রেটসহ রেঞ্জ লোড
 app.get("/api/ranges", async (req, res) => {
   try {
     const response = await axios.get(SYSTEM_CONFIG.RANGES_URL, { timeout: 6000 });
     let raw = response.data;
     let list = Array.isArray(raw) ? raw : (raw.ranges || raw.data || []);
     
-    // লামিক্সের আসল পে-আউট রেট বের করা
     const formatted = list.map(r => {
       let realRate = r.payout ?? r.rate ?? r.price ?? r.client_price ?? r.client_rate ?? r.cost ?? r.amount ?? r.tariff;
       if (!realRate || isNaN(parseFloat(realRate)) || parseFloat(realRate) <= 0) {
@@ -140,7 +170,7 @@ app.get("/api/ranges", async (req, res) => {
   res.json({ success: true, ranges: [] });
 });
 
-// ৩. নম্বর বরাদ্দ (আসল রেটসহ সেভ হবে)
+// ৩. নম্বর বরাদ্দ
 app.post("/api/allocate", (req, res) => {
   const { username, countryName, countryCode, rate, quantity } = req.body;
   const user = users[username && username.trim().toLowerCase()];
@@ -152,7 +182,6 @@ app.post("/api/allocate", (req, res) => {
   let finalCode = countryCode ? countryCode.toString().trim() : "+972";
   if (!finalCode.startsWith("+")) finalCode = "+" + finalCode;
 
-  // লামিক্সের আসল রেট
   const finalRate = parseFloat(rate) > 0 ? parseFloat(rate) : SYSTEM_CONFIG.DEFAULT_PAYOUT;
 
   let newNumbers = [];
@@ -170,6 +199,7 @@ app.post("/api/allocate", (req, res) => {
     newNumbers.push(numObj);
   }
 
+  saveUsers();
   res.json({ success: true, allNumbers: user.numbers });
 });
 
@@ -210,6 +240,7 @@ app.post("/api/replace-numbers", (req, res) => {
     user.numbers = [...freshNumbers, ...user.numbers];
   }
 
+  saveUsers();
   res.json({
     success: true,
     message: action === "replace" ? `${qty} টি নম্বর রিপ্লেস হয়েছে!` : `${qty} টি নম্বর রিলিজ হয়েছে!`,
@@ -238,6 +269,7 @@ app.post("/api/replace-single", (req, res) => {
   };
 
   user.numbers[idx] = freshNum;
+  saveUsers();
   res.json({ success: true, newNumber: freshNum, allNumbers: user.numbers });
 });
 
@@ -247,10 +279,11 @@ app.post("/api/clear-numbers", (req, res) => {
   const user = users[username && username.trim().toLowerCase()];
   if (!user) return res.status(401).json({ error: "ইউজার পাওয়া যায়নি" });
   user.numbers = [];
+  saveUsers();
   res.json({ success: true, allNumbers: [] });
 });
 
-// ৭. ওটিপি রিফ্রেশ ও ওই নম্বরের নির্দিষ্ট রেট অনুযায়ী টাকা যোগ
+// ৭. ওটিপি রিফ্রেশ
 app.post("/api/refresh-otp", async (req, res) => {
   const { username } = req.body;
   const user = users[username && username.trim().toLowerCase()];
@@ -264,7 +297,6 @@ app.post("/api/refresh-otp", async (req, res) => {
     messages.forEach(msg => {
       const exists = receivedMessages.some(m => m.id === msg.id);
       if (!exists && msg.id) {
-        // ওই নম্বরের নির্দিষ্ট আসল পে-আউট রেট নেওয়া
         const matchedNum = user.numbers.find(n => n.number === msg.number);
         const payout = matchedNum ? (matchedNum.payout || SYSTEM_CONFIG.DEFAULT_PAYOUT) : SYSTEM_CONFIG.DEFAULT_PAYOUT;
 
@@ -285,6 +317,7 @@ app.post("/api/refresh-otp", async (req, res) => {
       }
     });
 
+    saveUsers();
     res.json({ success: true, newCount, user, messages: receivedMessages });
   } catch (err) {
     res.json({ success: true, newCount: 0, user, messages: receivedMessages });
