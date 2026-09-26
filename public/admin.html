@@ -3,72 +3,184 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin Control Panel</title>
+  <title>Admin Dashboard</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, sans-serif; }
     body { background-color: #0b1120; color: #f1f5f9; padding: 15px; }
     .card { background: #1e293b; border-radius: 12px; padding: 16px; margin-bottom: 15px; border: 1px solid #334155; }
-    h2 { color: #f59e0b; margin-bottom: 15px; }
-    label { font-size: 13px; color: #94a3b8; display: block; margin-top: 10px; }
-    input { width: 100%; padding: 10px; border-radius: 6px; background: #0f172a; border: 1px solid #475569; color: #fff; margin-top: 4px; }
-    button { background: #f59e0b; color: #000; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 15px; }
-    .back-btn { background: #334155; color: #fff; margin-top: 8px; }
+    h2, h3 { color: #f59e0b; margin-bottom: 10px; }
+    label { font-size: 12px; color: #94a3b8; display: block; margin-top: 8px; }
+    input { width: 100%; padding: 10px; border-radius: 6px; background: #0f172a; border: 1px solid #475569; color: #fff; margin-top: 4px; font-size: 14px; }
+    button { background: #f59e0b; color: #000; border: none; padding: 11px; border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 10px; }
+    .btn-sync { background: #0284c7; color: #fff; margin-bottom: 10px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 12px; }
+    th, td { padding: 9px 5px; text-align: left; border-bottom: 1px solid #334155; }
+    th { color: #94a3b8; }
+    .btn-del { background: #ef4444; color: #fff; padding: 4px 8px; border-radius: 4px; font-size: 11px; width: auto; margin: 0; }
   </style>
 </head>
 <body>
 
-  <div class="card">
-    <h2>⚙️ Admin Control Panel</h2>
+  <!-- এডমিন লগইন -->
+  <div id="adminLoginBox" class="card" style="max-width: 400px; margin: 40px auto;">
+    <h2>Admin Login</h2>
+    <label>Admin ID:</label>
+    <input type="text" id="adminUser" placeholder="admin">
+    <label>Admin Password:</label>
+    <input type="password" id="adminPass" placeholder="admin1234">
+    <button onclick="adminLogin()">Login as Admin</button>
+  </div>
 
-    <label>Admin Security PIN (ডিফল্ট: 1234):</label>
-    <input type="password" id="adminPin" placeholder="Enter PIN">
+  <!-- এডমিন প্যানেল -->
+  <div id="adminPanelBox" style="display: none; max-width: 600px; margin: 0 auto;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 10px;">
+      <h2>⚙️ Admin Control Panel</h2>
+      <button onclick="location.reload()" style="background:#334155; color:#fff; width:auto; padding:6px 12px; font-size:12px; margin:0;">Logout</button>
+    </div>
 
-    <label>Lamix Base URL:</label>
-    <input type="text" id="baseUrl">
+    <!-- লামিক্স থেকে ক্লায়েন্ট সিঙ্ক বাটন -->
+    <div class="card">
+      <h3>🔄 Lamix Client Sync</h3>
+      <p style="font-size: 12px; color: #94a3b8; margin-bottom: 8px;">লামিক্স প্যানেলে তৈরি করা সব ক্লায়েন্ট এক ক্লিকে এখানে আনতে নিচের বাটনে চাপ দিন:</p>
+      <button class="btn-sync" onclick="syncLamixClients()">🔄 Sync Clients from Lamix</button>
+    </div>
 
-    <label>Lamix API Token:</label>
-    <input type="text" id="apiToken">
+    <!-- নতুন ইউজার যোগ করার ফর্ম -->
+    <div class="card">
+      <h3>➕ Add / Register Client</h3>
+      <label>Lamix Client Username:</label>
+      <input type="text" id="newUsername" placeholder="e.g. client1">
 
-    <label>প্রতি ওটিপিতে কত সেন্ট যোগ হবে (USD):</label>
-    <input type="number" step="0.01" id="payoutRate" placeholder="0.05">
+      <label>Password:</label>
+      <input type="text" id="newPassword" placeholder="e.g. pass123">
 
-    <button onclick="saveSettings()">Save & Update Settings</button>
-    <button class="back-btn" onclick="window.location.href='/'">⬅ Back to Dashboard</button>
+      <button onclick="createUser()">+ Add Client</button>
+    </div>
+
+    <!-- সক্রিয় ইউজারদের তালিকা -->
+    <div class="card">
+      <h3>👥 All Active Users</h3>
+      <table>
+        <thead>
+          <tr><th>Username</th><th>Password</th><th>Balance</th><th>SMS</th><th>Action</th></tr>
+        </thead>
+        <tbody id="usersTable"></tbody>
+      </table>
+    </div>
+
+    <!-- লামিক্স সেটিংস -->
+    <div class="card">
+      <h3>⚙️ Lamix Settings</h3>
+      <label>Lamix Full URL (Messages):</label>
+      <input type="text" id="messagesUrl">
+
+      <label>Default Payout per OTP ($):</label>
+      <input type="number" step="0.01" id="defaultPayout">
+
+      <button onclick="saveSettings()">Update Settings</button>
+    </div>
   </div>
 
   <script>
-    async function loadSettings() {
-      const res = await fetch('/api/admin/get-config');
-      const data = await res.json();
-      document.getElementById('baseUrl').value = data.baseUrl;
-      document.getElementById('apiToken').value = data.token;
-      document.getElementById('payoutRate').value = data.defaultPayout;
-    }
+    let aUser = "", aPass = "";
 
-    async function saveSettings() {
-      const pin = document.getElementById('adminPin').value;
-      if (!pin) return alert('দয়া করে এডমিন পিন দিন!');
+    async function adminLogin() {
+      aUser = document.getElementById('adminUser').value;
+      aPass = document.getElementById('adminPass').value;
 
-      const res = await fetch('/api/admin/update-config', {
+      const res = await fetch('/api/admin/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          pin: pin,
-          baseUrl: document.getElementById('baseUrl').value,
-          token: document.getElementById('apiToken').value,
-          defaultPayout: document.getElementById('payoutRate').value
-        })
+        body: JSON.stringify({ user: aUser, pass: aPass })
       });
-
       const data = await res.json();
       if (data.success) {
-        alert(data.message);
+        document.getElementById('adminLoginBox').style.display = 'none';
+        document.getElementById('adminPanelBox').style.display = 'block';
+        document.getElementById('messagesUrl').value = data.config.MESSAGES_URL;
+        document.getElementById('defaultPayout').value = data.config.DEFAULT_PAYOUT;
+        renderUsers(data.users);
       } else {
         alert(data.error);
       }
     }
 
-    loadSettings();
+    function renderUsers(list) {
+      const tbody = document.getElementById('usersTable');
+      tbody.innerHTML = '';
+      if (!list || list.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">কোনো ইউজার নেই</td></tr>';
+        return;
+      }
+      list.forEach(u => {
+        tbody.innerHTML += `
+          <tr>
+            <td><b>${u.username}</b></td>
+            <td><code>${u.password}</code></td>
+            <td style="color:#4ade80;">$${u.balance.toFixed(2)}</td>
+            <td>${u.totalSms}</td>
+            <td><button class="btn-del" onclick="deleteUser('${u.username}')">Delete</button></td>
+          </tr>`;
+      });
+    }
+
+    async function syncLamixClients() {
+      const res = await fetch('/api/admin/sync-lamix-clients', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ adminUser: aUser, adminPass: aPass })
+      });
+      const data = await res.json();
+      alert(data.message || data.error);
+      if (data.users) renderUsers(data.users);
+    }
+
+    async function createUser() {
+      const u = document.getElementById('newUsername').value.trim();
+      const p = document.getElementById('newPassword').value.trim();
+      if (!u || !p) return alert('ইউজারনেম ও পাসওয়ার্ড দিন');
+
+      const res = await fetch('/api/admin/create-user', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ adminUser: aUser, adminPass: aPass, newUsername: u, newPassword: p })
+      });
+      const data = await res.json();
+      if (data.success) {
+        alert(data.message);
+        document.getElementById('newUsername').value = '';
+        document.getElementById('newPassword').value = '';
+        renderUsers(data.users);
+      } else {
+        alert(data.error);
+      }
+    }
+
+    async function deleteUser(target) {
+      if (!confirm(`${target} ইউজার ডিলিট করতে চান?`)) return;
+      const res = await fetch('/api/admin/delete-user', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ adminUser: aUser, adminPass: aPass, targetUser: target })
+      });
+      const data = await res.json();
+      if (data.success) renderUsers(data.users);
+    }
+
+    async function saveSettings() {
+      const res = await fetch('/api/admin/update-settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          adminUser: aUser,
+          adminPass: aPass,
+          messagesUrl: document.getElementById('messagesUrl').value,
+          defaultPayout: document.getElementById('defaultPayout').value
+        })
+      });
+      const data = await res.json();
+      alert(data.message || data.error);
+    }
   </script>
 </body>
 </html>
