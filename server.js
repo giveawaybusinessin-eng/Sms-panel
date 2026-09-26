@@ -18,7 +18,7 @@ let SYSTEM_CONFIG = {
   ADMIN_PASS: "admin1234"
 };
 
-// ইউজার ডাটা পারসিস্টেন্স (Render রিস্টার্ট হলেও ডাটা থাকবে)
+// ইউজার ডাটাবেজ সংরক্ষণ
 let users = {};
 function loadUsers() {
   try {
@@ -35,6 +35,15 @@ function saveUsers() {
   } catch (e) {}
 }
 loadUsers();
+
+// ডিফল্ট ইউজার ব্যাকআপ
+if (!users["test101"]) {
+  users["test101"] = { username: "test101", password: "123", balance: 0.00, todayEarnings: 0.00, sevenDayEarnings: 0.00, totalSms: 0, numbers: [] };
+}
+if (!users["user1"]) {
+  users["user1"] = { username: "user1", password: "123", balance: 0.00, todayEarnings: 0.00, sevenDayEarnings: 0.00, totalSms: 0, numbers: [] };
+}
+saveUsers();
 
 let receivedMessages = [];
 
@@ -56,86 +65,41 @@ setInterval(() => {
   }
 }, 30000);
 
-// ================= ১. ১০০% নির্ভুল লামিক্স লগইন ভেরিফিকেশন ================= //
-app.post("/api/auth/login", async (req, res) => {
+// ================= ১. ইনস্ট্যান্ট লগইন সিস্টেম ================= //
+app.post("/api/auth/login", (req, res) => {
   const { username, password } = req.body;
   if (!username || !password) {
     return res.status(400).json({ error: "ইউজারনেম ও পাসওয়ার্ড দিন" });
   }
 
   const uKey = username.trim().toLowerCase();
+  const cleanPass = password.trim();
 
-  // ক) লোকাল ফাইলে সেভ থাকলে সরাসরি ম্যাচিং
-  if (users[uKey] && users[uKey].password === password) {
-    return res.json({ success: true, user: users[uKey] });
-  }
-
-  // খ) সরাসরি লামিক্স এপিআই দিয়ে লগইন যাচাই
-  let lamixVerified = false;
-  try {
-    const lamixRes = await axios.post("https://panel.lamix.org/api/v1/client/login", {
-      username: username.trim(),
-      password: password
-    }, { timeout: 4000 });
-    if (lamixRes.data && (lamixRes.data.token || lamixRes.data.success || lamixRes.data.status === "success")) {
-      lamixVerified = true;
-    }
-  } catch (e1) {
-    try {
-      const lamixRes2 = await axios.post("https://panel.lamix.org/api/v1/auth/login", {
-        username: username.trim(),
-        password: password
-      }, { timeout: 4000 });
-      if (lamixRes2.data && (lamixRes2.data.token || lamixRes2.data.success)) {
-        lamixVerified = true;
-      }
-    } catch (e2) {}
-  }
-
-  // গ) লামিক্সের এজেন্ট ক্লায়েন্ট তালিকা থেকে যাচাই
-  if (!lamixVerified) {
-    try {
-      const clientListRes = await axios.get(`https://panel.lamix.org/api/v1/clients?token=${SYSTEM_CONFIG.TOKEN}`, { timeout: 5000 });
-      const clients = Array.isArray(clientListRes.data) ? clientListRes.data : (clientListRes.data.clients || clientListRes.data.data || []);
-      
-      const found = clients.find(c => {
-        const cUser = (c.username || c.login || c.name || c.client || "").trim().toLowerCase();
-        return cUser === uKey;
-      });
-
-      if (found) {
-        const cPass = found.password || found.pass;
-        // যদি ক্লায়েন্ট লিস্টে ইউজার থাকে
-        if (!cPass || cPass === password || !users[uKey] || users[uKey].password === password) {
-          lamixVerified = true;
-        }
-      }
-    } catch (e3) {}
-  }
-
-  // ঘ) ভেরিফাইড হলে সিস্টেমে সেভ হবে এবং লগইন সফল হবে
-  if (lamixVerified) {
-    if (!users[uKey]) {
-      users[uKey] = {
-        username: username.trim(),
-        password: password,
-        balance: 0.00,
-        todayEarnings: 0.00,
-        sevenDayEarnings: 0.00,
-        totalSms: 0,
-        numbers: []
-      };
+  // ক) ইউজার আগে থেকে থাকলে পাসওয়ার্ড মিলিয়ে লগইন
+  if (users[uKey]) {
+    if (users[uKey].password === cleanPass) {
+      return res.json({ success: true, user: users[uKey] });
     } else {
-      users[uKey].password = password;
+      return res.status(401).json({ error: "ভুল পাসওয়ার্ড! সঠিক পাসওয়ার্ড দিন।" });
     }
-    saveUsers();
-    return res.json({ success: true, user: users[uKey] });
   }
 
-  return res.status(401).json({ error: "ভুল ইউজারনেম বা পাসওয়ার্ড! লামিক্স ক্লায়েন্ট তৈরি করা আছে কি না যাচাই করুন।" });
+  // খ) নতুন লামিক্স ক্লায়েন্ট হলে ইনস্ট্যান্ট একাউন্ট তৈরি ও লগইন
+  users[uKey] = {
+    username: username.trim(),
+    password: cleanPass,
+    balance: 0.00,
+    todayEarnings: 0.00,
+    sevenDayEarnings: 0.00,
+    totalSms: 0,
+    numbers: []
+  };
+  saveUsers();
+
+  return res.json({ success: true, user: users[uKey] });
 });
 
-// ইউজার প্রোফাইল ডাটা
+// প্রোফাইল সিঙ্ক
 app.get("/api/user/profile/:username", (req, res) => {
   const uKey = req.params.username && req.params.username.trim().toLowerCase();
   const user = users[uKey];
@@ -148,7 +112,7 @@ app.get("/api/user/profile/:username", (req, res) => {
 // ২. লামিক্সের আসল পে-আউট রেটসহ রেঞ্জ লোড
 app.get("/api/ranges", async (req, res) => {
   try {
-    const response = await axios.get(SYSTEM_CONFIG.RANGES_URL, { timeout: 6000 });
+    const response = await axios.get(SYSTEM_CONFIG.RANGES_URL, { timeout: 5000 });
     let raw = response.data;
     let list = Array.isArray(raw) ? raw : (raw.ranges || raw.data || []);
     
@@ -322,6 +286,49 @@ app.post("/api/refresh-otp", async (req, res) => {
   } catch (err) {
     res.json({ success: true, newCount: 0, user, messages: receivedMessages });
   }
+});
+
+// এডমিন রাউটস
+app.post("/api/admin/login", (req, res) => {
+  const { user, pass } = req.body;
+  if (user === SYSTEM_CONFIG.ADMIN_USER && pass === SYSTEM_CONFIG.ADMIN_PASS) {
+    res.json({ success: true, config: SYSTEM_CONFIG, users: Object.values(users) });
+  } else {
+    res.status(401).json({ error: "ভুল এডমিন আইডি বা পাসওয়ার্ড!" });
+  }
+});
+
+app.post("/api/admin/create-user", (req, res) => {
+  const { adminUser, adminPass, newUsername, newPassword } = req.body;
+  if (adminUser !== SYSTEM_CONFIG.ADMIN_USER || adminPass !== SYSTEM_CONFIG.ADMIN_PASS) {
+    return res.status(401).json({ error: "অননুমোদিত!" });
+  }
+  const key = newUsername.trim().toLowerCase();
+  users[key] = {
+    username: newUsername.trim(),
+    password: newPassword.trim(),
+    balance: 0.00,
+    todayEarnings: 0.00,
+    sevenDayEarnings: 0.00,
+    totalSms: 0,
+    numbers: []
+  };
+  saveUsers();
+  res.json({ success: true, message: `ইউজার '${newUsername}' তৈরি হয়েছে!`, users: Object.values(users) });
+});
+
+app.post("/api/admin/delete-user", (req, res) => {
+  const { adminUser, adminPass, targetUser } = req.body;
+  if (adminUser !== SYSTEM_CONFIG.ADMIN_USER || adminPass !== SYSTEM_CONFIG.ADMIN_PASS) {
+    return res.status(401).json({ error: "অননুমোদিত!" });
+  }
+  const key = targetUser && targetUser.trim().toLowerCase();
+  if (users[key]) {
+    delete users[key];
+    saveUsers();
+    return res.json({ success: true, message: "ইউজার মুছে ফেলা হয়েছে!", users: Object.values(users) });
+  }
+  res.status(404).json({ error: "ইউজার পাওয়া যায়নি" });
 });
 
 const PORT = process.env.PORT || 3000;
