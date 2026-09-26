@@ -18,7 +18,7 @@ let SYSTEM_CONFIG = {
   ADMIN_PASS: "admin1234"
 };
 
-// ইউজার ডাটাবেজ সংরক্ষণ
+// ইউজার ডাটাবেজ সংরক্ষণ (Render রিস্টার্ট হলেও ডাটা মুছবে না)
 let users = {};
 function loadUsers() {
   try {
@@ -36,7 +36,7 @@ function saveUsers() {
 }
 loadUsers();
 
-// ডিফল্ট ইউজার ব্যাকআপ
+// ডিফল্ট টেস্ট অ্যাকাউন্ট
 if (!users["test101"]) {
   users["test101"] = { username: "test101", password: "123", balance: 0.00, todayEarnings: 0.00, sevenDayEarnings: 0.00, totalSms: 0, numbers: [] };
 }
@@ -47,7 +47,7 @@ saveUsers();
 
 let receivedMessages = [];
 
-// প্রতিদিন সন্ধ্যা ৬:০০ টায় অটো রিসেট
+// প্রতিদিন সন্ধ্যা ৬:০০ টায় অটো রিসেট (বাংলাদেশ সময়)
 let lastResetDate = "";
 setInterval(() => {
   const now = new Date();
@@ -75,7 +75,7 @@ app.post("/api/auth/login", (req, res) => {
   const uKey = username.trim().toLowerCase();
   const cleanPass = password.trim();
 
-  // ক) ইউজার আগে থেকে থাকলে পাসওয়ার্ড মিলিয়ে লগইন
+  // ক) ইউজার আগে থেকেই সেভ থাকলে পাসওয়ার্ড চেক
   if (users[uKey]) {
     if (users[uKey].password === cleanPass) {
       return res.json({ success: true, user: users[uKey] });
@@ -84,7 +84,7 @@ app.post("/api/auth/login", (req, res) => {
     }
   }
 
-  // খ) নতুন লামিক্স ক্লায়েন্ট হলে ইনস্ট্যান্ট একাউন্ট তৈরি ও লগইন
+  // খ) নতুন লামিক্স ইউজার হলে ইনস্ট্যান্ট একাউন্ট বাইন্ড ও লগইন
   users[uKey] = {
     username: username.trim(),
     password: cleanPass,
@@ -99,7 +99,7 @@ app.post("/api/auth/login", (req, res) => {
   return res.json({ success: true, user: users[uKey] });
 });
 
-// প্রোফাইল সিঙ্ক
+// ইউজার প্রোফাইল ডাটা
 app.get("/api/user/profile/:username", (req, res) => {
   const uKey = req.params.username && req.params.username.trim().toLowerCase();
   const user = users[uKey];
@@ -109,7 +109,7 @@ app.get("/api/user/profile/:username", (req, res) => {
   res.status(404).json({ error: "ইউজার পাওয়া যায়নি" });
 });
 
-// ২. লামিক্সের আসল পে-আউট রেটসহ রেঞ্জ লোড
+// ================= ২. লামিক্সের রিয়েল রেটসহ রেঞ্জ লোড ================= //
 app.get("/api/ranges", async (req, res) => {
   try {
     const response = await axios.get(SYSTEM_CONFIG.RANGES_URL, { timeout: 5000 });
@@ -134,7 +134,7 @@ app.get("/api/ranges", async (req, res) => {
   res.json({ success: true, ranges: [] });
 });
 
-// ৩. নম্বর বরাদ্দ
+// ================= ৩. নম্বর বরাদ্দ ================= //
 app.post("/api/allocate", (req, res) => {
   const { username, countryName, countryCode, rate, quantity } = req.body;
   const user = users[username && username.trim().toLowerCase()];
@@ -167,7 +167,7 @@ app.post("/api/allocate", (req, res) => {
   res.json({ success: true, allNumbers: user.numbers });
 });
 
-// ৪. রিপ্লেস
+// ================= ৪. রেঞ্জ রিপ্লেস বা রিলিজ ================= //
 app.post("/api/replace-numbers", (req, res) => {
   const { username, country, action } = req.body;
   const user = users[username && username.trim().toLowerCase()];
@@ -212,7 +212,7 @@ app.post("/api/replace-numbers", (req, res) => {
   });
 });
 
-// ৫. সিঙ্গেল রিপ্লেস
+// ================= ৫. সিঙ্গেল নম্বর রিপ্লেস ================= //
 app.post("/api/replace-single", (req, res) => {
   const { username, targetNumber } = req.body;
   const user = users[username && username.trim().toLowerCase()];
@@ -237,7 +237,7 @@ app.post("/api/replace-single", (req, res) => {
   res.json({ success: true, newNumber: freshNum, allNumbers: user.numbers });
 });
 
-// ৬. ক্লিয়ার
+// ================= ৬. সমস্ত নম্বর ক্লিয়ার ================= //
 app.post("/api/clear-numbers", (req, res) => {
   const { username } = req.body;
   const user = users[username && username.trim().toLowerCase()];
@@ -247,7 +247,7 @@ app.post("/api/clear-numbers", (req, res) => {
   res.json({ success: true, allNumbers: [] });
 });
 
-// ৭. ওটিপি রিফ্রেশ
+// ================= ৭. ওটিপি রিফ্রেশ ও ব্যালেন্স যোগ ================= //
 app.post("/api/refresh-otp", async (req, res) => {
   const { username } = req.body;
   const user = users[username && username.trim().toLowerCase()];
@@ -288,7 +288,7 @@ app.post("/api/refresh-otp", async (req, res) => {
   }
 });
 
-// এডমিন রাউটস
+// ================= ৮. এডমিন রাউটস ================= //
 app.post("/api/admin/login", (req, res) => {
   const { user, pass } = req.body;
   if (user === SYSTEM_CONFIG.ADMIN_USER && pass === SYSTEM_CONFIG.ADMIN_PASS) {
