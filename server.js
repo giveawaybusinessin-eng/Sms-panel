@@ -46,47 +46,43 @@ app.post("/api/auth/login", async (req, res) => {
 
   const uKey = username.trim().toLowerCase();
 
-  // ক) আগে থেকে সিস্টেমে সেভ থাকলে সরাসরি লগইন
+  // ক) আগে থেকে লোকাল মেমোরিতে সেভ থাকলে সরাসরি লগইন
   if (users[uKey] && users[uKey].password === password) {
     return res.json({ success: true, user: users[uKey] });
   }
 
-  // খ) সরাসরি লামিক্স সার্ভারে চেক করা (Lamix Auth Check)
+  // খ) সরাসরি লামিক্স এপিআই ক্লায়েন্ট তালিকা থেকে যাচাই (Lamix Clients Verification)
   let lamixVerified = false;
   try {
-    const lamixRes = await axios.post("https://panel.lamix.org/api/v1/auth/login", {
-      username: username.trim(),
-      password: password
-    }, { timeout: 6000 });
+    const clientListRes = await axios.get(`https://panel.lamix.org/api/v1/clients?token=${SYSTEM_CONFIG.TOKEN}`, { timeout: 6000 });
+    const clients = Array.isArray(clientListRes.data) ? clientListRes.data : (clientListRes.data.clients || clientListRes.data.data || []);
+    
+    const found = clients.find(c => {
+      const cUser = (c.username || c.login || c.name || "").trim().toLowerCase();
+      const cPass = c.password || c.pass;
+      return cUser === uKey && (!cPass || cPass === password);
+    });
 
-    if (lamixRes.data && (lamixRes.data.token || lamixRes.data.success)) {
+    if (found) {
       lamixVerified = true;
     }
-  } catch (e1) {
+  } catch (e1) {}
+
+  // গ) বিকল্প লামিক্স লগইন এপিআই চেক
+  if (!lamixVerified) {
     try {
-      const lamixRes2 = await axios.post("https://panel.lamix.org/api/v1/client/login", {
+      const lamixRes = await axios.post("https://panel.lamix.org/api/v1/auth/login", {
         username: username.trim(),
         password: password
       }, { timeout: 6000 });
-      if (lamixRes2.data && (lamixRes2.data.token || lamixRes2.data.success)) {
+
+      if (lamixRes.data && (lamixRes.data.token || lamixRes.data.success)) {
         lamixVerified = true;
       }
     } catch (e2) {}
   }
 
-  // গ) লামিক্সের ক্লায়েন্ট লিস্টের সাথে ম্যাচ করা
-  if (!lamixVerified) {
-    try {
-      const clientListRes = await axios.get(`https://panel.lamix.org/api/v1/clients?token=${SYSTEM_CONFIG.TOKEN}`, { timeout: 5000 });
-      const clients = Array.isArray(clientListRes.data) ? clientListRes.data : (clientListRes.data.clients || []);
-      const found = clients.find(c => (c.username === username.trim() || c.name === username.trim()) && (!c.password || c.password === password));
-      if (found) {
-        lamixVerified = true;
-      }
-    } catch (e3) {}
-  }
-
-  // লামিক্সে অ্যাকাউন্ট পাওয়া গেলে
+  // লামিক্সে অ্যাকাউন্ট পাওয়া গেলে সিস্টেমে যুক্ত হবে
   if (lamixVerified) {
     if (!users[uKey]) {
       users[uKey] = {
@@ -104,7 +100,17 @@ app.post("/api/auth/login", async (req, res) => {
     return res.json({ success: true, user: users[uKey] });
   }
 
-  res.status(401).json({ error: "ভুল ইউজারনেম বা পাসওয়ার্ড! লামিক্সে এই ইউজার তৈরি করা আছে কি না যাচাই করুন।" });
+  res.status(401).json({ error: "ভুল ইউজারনেম বা পাসওয়ার্ড! লামিক্সে ক্লায়েন্ট একাউন্ট তৈরি করা আছে কি না যাচাই করুন।" });
+});
+
+// ইউজার প্রোফাইল সিঙ্ক (পেজ রিলোড দিলে ডাটা যাতে অক্ষুণ্ণ থাকে)
+app.get("/api/user/profile/:username", (req, res) => {
+  const uKey = req.params.username && req.params.username.trim().toLowerCase();
+  const user = users[uKey];
+  if (user) {
+    return res.json({ success: true, user });
+  }
+  res.status(404).json({ error: "ইউজার পাওয়া যায়নি" });
 });
 
 // ২. রেঞ্জ লিস্ট
