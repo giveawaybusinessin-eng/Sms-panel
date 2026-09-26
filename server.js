@@ -18,7 +18,7 @@ let SYSTEM_CONFIG = {
   ADMIN_PASS: "admin1234"
 };
 
-// ইউজার ডাটাবেজ সংরক্ষণ (Render রিস্টার্ট হলেও ডাটা মুছবে না)
+// ফাইল ডাটাবেজ
 let users = {};
 function loadUsers() {
   try {
@@ -36,18 +36,9 @@ function saveUsers() {
 }
 loadUsers();
 
-// ডিফল্ট টেস্ট অ্যাকাউন্ট
-if (!users["test101"]) {
-  users["test101"] = { username: "test101", password: "123", balance: 0.00, todayEarnings: 0.00, sevenDayEarnings: 0.00, totalSms: 0, numbers: [] };
-}
-if (!users["user1"]) {
-  users["user1"] = { username: "user1", password: "123", balance: 0.00, todayEarnings: 0.00, sevenDayEarnings: 0.00, totalSms: 0, numbers: [] };
-}
-saveUsers();
-
 let receivedMessages = [];
 
-// প্রতিদিন সন্ধ্যা ৬:০০ টায় অটো রিসেট (বাংলাদেশ সময়)
+// প্রতিদিন সন্ধ্যা ৬:০০ টায় অটো রিসেট
 let lastResetDate = "";
 setInterval(() => {
   const now = new Date();
@@ -65,7 +56,7 @@ setInterval(() => {
   }
 }, 30000);
 
-// ================= ১. ইনস্ট্যান্ট লগইন সিস্টেম ================= //
+// ================= ১. ১০০% নিশ্চিত লগইন এপিআই ================= //
 app.post("/api/auth/login", (req, res) => {
   const { username, password } = req.body;
   if (!username || !password) {
@@ -75,7 +66,7 @@ app.post("/api/auth/login", (req, res) => {
   const uKey = username.trim().toLowerCase();
   const cleanPass = password.trim();
 
-  // ক) ইউজার আগে থেকেই সেভ থাকলে পাসওয়ার্ড চেক
+  // ইউজার আগে লগইন করে থাকলে পাসওয়ার্ড মেলানো হবে
   if (users[uKey]) {
     if (users[uKey].password === cleanPass) {
       return res.json({ success: true, user: users[uKey] });
@@ -84,7 +75,7 @@ app.post("/api/auth/login", (req, res) => {
     }
   }
 
-  // খ) নতুন লামিক্স ইউজার হলে ইনস্ট্যান্ট একাউন্ট বাইন্ড ও লগইন
+  // লামিক্স ক্লায়েন্ট হিসেবে প্রথমবার লগইন করলে সরাসরি সেভ হবে
   users[uKey] = {
     username: username.trim(),
     password: cleanPass,
@@ -99,17 +90,14 @@ app.post("/api/auth/login", (req, res) => {
   return res.json({ success: true, user: users[uKey] });
 });
 
-// ইউজার প্রোফাইল ডাটা
 app.get("/api/user/profile/:username", (req, res) => {
   const uKey = req.params.username && req.params.username.trim().toLowerCase();
   const user = users[uKey];
-  if (user) {
-    return res.json({ success: true, user });
-  }
+  if (user) return res.json({ success: true, user });
   res.status(404).json({ error: "ইউজার পাওয়া যায়নি" });
 });
 
-// ================= ২. লামিক্সের রিয়েল রেটসহ রেঞ্জ লোড ================= //
+// ২. রেঞ্জ লোড
 app.get("/api/ranges", async (req, res) => {
   try {
     const response = await axios.get(SYSTEM_CONFIG.RANGES_URL, { timeout: 5000 });
@@ -134,7 +122,7 @@ app.get("/api/ranges", async (req, res) => {
   res.json({ success: true, ranges: [] });
 });
 
-// ================= ৩. নম্বর বরাদ্দ ================= //
+// ৩. নম্বর বরাদ্দ
 app.post("/api/allocate", (req, res) => {
   const { username, countryName, countryCode, rate, quantity } = req.body;
   const user = users[username && username.trim().toLowerCase()];
@@ -167,7 +155,7 @@ app.post("/api/allocate", (req, res) => {
   res.json({ success: true, allNumbers: user.numbers });
 });
 
-// ================= ৪. রেঞ্জ রিপ্লেস বা রিলিজ ================= //
+// ৪. রিপ্লেস বা রিলিজ
 app.post("/api/replace-numbers", (req, res) => {
   const { username, country, action } = req.body;
   const user = users[username && username.trim().toLowerCase()];
@@ -177,9 +165,7 @@ app.post("/api/replace-numbers", (req, res) => {
   const matched = user.numbers.filter(n => (n.range || n.country || "").trim().toLowerCase() === countryLower);
   const qty = matched.length;
 
-  if (qty === 0) {
-    return res.status(400).json({ error: "কোনো নম্বর পাওয়া যায়নি!" });
-  }
+  if (qty === 0) return res.status(400).json({ error: "কোনো নম্বর পাওয়া যায়নি!" });
 
   const sample = matched[0];
   const finalCode = sample.code || "+972";
@@ -212,7 +198,7 @@ app.post("/api/replace-numbers", (req, res) => {
   });
 });
 
-// ================= ৫. সিঙ্গেল নম্বর রিপ্লেস ================= //
+// ৫. সিঙ্গেল রিপ্লেস
 app.post("/api/replace-single", (req, res) => {
   const { username, targetNumber } = req.body;
   const user = users[username && username.trim().toLowerCase()];
@@ -237,7 +223,7 @@ app.post("/api/replace-single", (req, res) => {
   res.json({ success: true, newNumber: freshNum, allNumbers: user.numbers });
 });
 
-// ================= ৬. সমস্ত নম্বর ক্লিয়ার ================= //
+// ৬. ক্লিয়ার
 app.post("/api/clear-numbers", (req, res) => {
   const { username } = req.body;
   const user = users[username && username.trim().toLowerCase()];
@@ -247,7 +233,7 @@ app.post("/api/clear-numbers", (req, res) => {
   res.json({ success: true, allNumbers: [] });
 });
 
-// ================= ৭. ওটিপি রিফ্রেশ ও ব্যালেন্স যোগ ================= //
+// ৭. ওটিপি রিফ্রেশ
 app.post("/api/refresh-otp", async (req, res) => {
   const { username } = req.body;
   const user = users[username && username.trim().toLowerCase()];
@@ -288,7 +274,7 @@ app.post("/api/refresh-otp", async (req, res) => {
   }
 });
 
-// ================= ৮. এডমিন রাউটস ================= //
+// এডমিন রাউট
 app.post("/api/admin/login", (req, res) => {
   const { user, pass } = req.body;
   if (user === SYSTEM_CONFIG.ADMIN_USER && pass === SYSTEM_CONFIG.ADMIN_PASS) {
@@ -296,39 +282,6 @@ app.post("/api/admin/login", (req, res) => {
   } else {
     res.status(401).json({ error: "ভুল এডমিন আইডি বা পাসওয়ার্ড!" });
   }
-});
-
-app.post("/api/admin/create-user", (req, res) => {
-  const { adminUser, adminPass, newUsername, newPassword } = req.body;
-  if (adminUser !== SYSTEM_CONFIG.ADMIN_USER || adminPass !== SYSTEM_CONFIG.ADMIN_PASS) {
-    return res.status(401).json({ error: "অননুমোদিত!" });
-  }
-  const key = newUsername.trim().toLowerCase();
-  users[key] = {
-    username: newUsername.trim(),
-    password: newPassword.trim(),
-    balance: 0.00,
-    todayEarnings: 0.00,
-    sevenDayEarnings: 0.00,
-    totalSms: 0,
-    numbers: []
-  };
-  saveUsers();
-  res.json({ success: true, message: `ইউজার '${newUsername}' তৈরি হয়েছে!`, users: Object.values(users) });
-});
-
-app.post("/api/admin/delete-user", (req, res) => {
-  const { adminUser, adminPass, targetUser } = req.body;
-  if (adminUser !== SYSTEM_CONFIG.ADMIN_USER || adminPass !== SYSTEM_CONFIG.ADMIN_PASS) {
-    return res.status(401).json({ error: "অননুমোদিত!" });
-  }
-  const key = targetUser && targetUser.trim().toLowerCase();
-  if (users[key]) {
-    delete users[key];
-    saveUsers();
-    return res.json({ success: true, message: "ইউজার মুছে ফেলা হয়েছে!", users: Object.values(users) });
-  }
-  res.status(404).json({ error: "ইউজার পাওয়া যায়নি" });
 });
 
 const PORT = process.env.PORT || 3000;
