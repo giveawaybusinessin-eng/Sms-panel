@@ -2,743 +2,1296 @@
 <html lang="bn">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Lamix SMS Client Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Lamix Client Portal | এসএমএস ওটিপি প্যানেল</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    body { background-color: #0b1120; color: #f1f5f9; padding: 15px; padding-bottom: 75px; min-height: 100vh; }
-    .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-    .header h2 { color: #38bdf8; font-size: 19px; }
-    .header-user { display: flex; align-items: center; gap: 8px; font-size: 12px; }
-    .card { background: #1e293b; border-radius: 12px; padding: 15px; margin-bottom: 15px; border: 1px solid #334155; }
-    .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-    @media (min-width: 480px) {
-      .stats { grid-template-columns: 1fr 1fr 1fr 1fr; }
+    :root {
+      --bg: #090d16;
+      --card-bg: #111726;
+      --card-border: #1e293b;
+      --primary: #3b82f6;
+      --primary-hover: #2563eb;
+      --secondary: #6366f1;
+      --accent: #10b981;
+      --accent-hover: #059669;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --badge-bg: #1e293b;
+      --input-bg: #0b1120;
     }
-    .stat-box { background: #0f172a; padding: 10px; border-radius: 8px; text-align: center; border: 1px solid #334155; }
-    .stat-box div:first-child { font-size: 11px; color: #94a3b8; }
-    .stat-val { font-size: 16px; font-weight: bold; color: #4ade80; margin-top: 4px; }
-    select, input { width: 100%; padding: 10px; border-radius: 6px; background: #0f172a; border: 1px solid #475569; color: #fff; margin-top: 5px; font-size: 13px; outline: none; }
-    select:focus, input:focus { border-color: #38bdf8; }
-    button { background: #2563eb; color: #fff; border: none; padding: 10px; border-radius: 8px; font-size: 14px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 10px; transition: 0.2s; }
-    button:hover { opacity: 0.9; }
-    button:disabled { opacity: 0.5; cursor: not-allowed; }
-    .btn-refresh { background: #10b981; margin-bottom: 10px; }
-    .btn-logout { background: #ef4444; padding: 5px 10px; font-size: 11px; border-radius: 6px; width: auto; margin-top: 0; cursor: pointer; }
-    .btn-profile { background: #0284c7; padding: 5px 10px; font-size: 11px; border-radius: 6px; width: auto; margin-top: 0; cursor: pointer; }
-    
-    .filter-tabs { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 12px; }
-    .filter-btn { background: #0f172a; border: 1px solid #334155; color: #94a3b8; padding: 4px 10px; border-radius: 6px; font-size: 11px; cursor: pointer; white-space: nowrap; width: auto; margin: 0; }
-    .filter-btn.active { background: #38bdf8; color: #0b1120; font-weight: bold; border-color: #38bdf8; }
-    
-    .range-section { background: #0f172a; border: 1px solid #334155; border-radius: 8px; margin-bottom: 15px; padding: 12px; }
-    .range-header { display: flex; flex-direction: column; gap: 8px; border-bottom: 1px solid #1e293b; padding-bottom: 8px; margin-bottom: 8px; }
-    @media (min-width: 520px) {
-      .range-header { flex-direction: row; justify-content: space-between; align-items: center; }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Hind Siliguri', 'Plus Jakarta Sans', sans-serif;
     }
-    .range-title { font-size: 13px; font-weight: bold; color: #38bdf8; display: flex; align-items: center; gap: 6px; }
-    .range-btns { display: flex; gap: 4px; flex-wrap: wrap; }
-    
-    .btn-copy-full { background: #10b981; color: #fff; border: none; padding: 4px 8px; font-size: 11px; border-radius: 5px; cursor: pointer; width: auto; margin: 0; font-weight: 600; }
-    .btn-copy-pure { background: #0284c7; color: #fff; border: none; padding: 4px 8px; font-size: 11px; border-radius: 5px; cursor: pointer; width: auto; margin: 0; font-weight: 600; }
-    .btn-replace-all { background: #f59e0b; color: #000; font-weight: bold; border: none; padding: 4px 8px; font-size: 11px; border-radius: 5px; cursor: pointer; width: auto; margin: 0; }
-    .btn-release-all { background: #ef4444; color: #fff; border: none; padding: 4px 8px; font-size: 11px; border-radius: 5px; cursor: pointer; width: auto; margin: 0; }
-    
-    table { width: 100%; border-collapse: collapse; font-size: 12px; }
-    th, td { padding: 8px 4px; text-align: left; border-bottom: 1px solid #1e293b; }
-    th { color: #94a3b8; }
-    .otp-text { background: #0284c7; padding: 3px 6px; border-radius: 4px; font-weight: bold; color: #fff; display: inline-block; word-break: break-all; font-family: monospace; }
-    
-    .btn-row-full { background: #10b981; color: #fff; border: none; padding: 3px 6px; border-radius: 4px; font-size: 10px; cursor: pointer; width: auto; margin: 0; font-weight: bold; }
-    .btn-row-pure { background: #0284c7; color: #fff; border: none; padding: 3px 6px; border-radius: 4px; font-size: 10px; cursor: pointer; width: auto; margin: 0; font-weight: bold; }
-    .rep-single-btn { background: #f59e0b; color: #000; border: none; padding: 3px 6px; border-radius: 4px; font-size: 10px; cursor: pointer; width: auto; margin: 0; font-weight: bold; }
-    
-    .nav-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #0f172a; display: flex; justify-content: space-around; padding: 10px; border-top: 1px solid #334155; z-index: 50; }
-    .nav-item { color: #94a3b8; text-decoration: none; font-size: 13px; font-weight: bold; cursor: pointer; padding: 4px 8px; border-radius: 6px; }
-    .nav-item.active { color: #38bdf8; background: #1e293b; }
-    .login-container { max-width: 380px; margin: 40px auto; }
-    .alert-box { background: rgba(239, 68, 68, 0.25); border: 1px solid #ef4444; color: #fca5a5; padding: 10px; border-radius: 8px; font-size: 12px; margin-bottom: 12px; display: none; }
-    
-    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: none; justify-content: center; align-items: center; z-index: 100; padding: 15px; }
-    .modal-box { background: #1e293b; border: 1px solid #38bdf8; border-radius: 12px; padding: 20px; width: 100%; max-width: 360px; }
-    .lamix-notice { background: rgba(245, 158, 11, 0.15); border: 1px solid #f59e0b; color: #fde68a; padding: 8px 10px; border-radius: 6px; font-size: 11px; margin-bottom: 12px; }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      line-height: 1.5;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 1240px;
+      margin: 0 auto;
+      padding: 16px;
+    }
+
+    header {
+      background-color: rgba(17, 23, 38, 0.95);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--card-border);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .nav-inner {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 16px;
+      max-width: 1240px;
+      margin: 0 auto;
+    }
+
+    .logo-box {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+      color: inherit;
+    }
+
+    .logo-icon {
+      width: 38px;
+      height: 38px;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 20px;
+      color: #fff;
+    }
+
+    .logo-text h1 {
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    .logo-text p {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .nav-user {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .badge-balance {
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      color: #34d399;
+      font-weight: 700;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 13px;
+    }
+
+    .user-pill {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn-logout {
+      background: rgba(239, 68, 68, 0.15);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      color: #f87171;
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .reset-banner {
+      background: linear-gradient(90deg, rgba(245, 158, 11, 0.15), rgba(239, 68, 68, 0.15));
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      border-radius: 12px;
+      padding: 10px 16px;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 8px;
+      font-size: 13px;
+      color: #fbbf24;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+
+    .stat-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      padding: 16px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .stat-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+
+    .stat-icon.blue { background: rgba(59, 130, 246, 0.15); color: #60a5fa; }
+    .stat-icon.green { background: rgba(16, 185, 129, 0.15); color: #34d399; }
+    .stat-icon.purple { background: rgba(99, 102, 241, 0.15); color: #818cf8; }
+    .stat-icon.orange { background: rgba(245, 158, 11, 0.15); color: #fbbf24; }
+
+    .stat-info p {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .stat-info h3 {
+      font-size: 20px;
+      font-weight: 700;
+    }
+
+    .control-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      padding: 18px;
+      margin-bottom: 24px;
+    }
+
+    .control-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .control-header h2 {
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    .control-form {
+      display: grid;
+      grid-template-columns: 2fr 1fr auto auto;
+      gap: 12px;
+      align-items: center;
+    }
+
+    @media (max-width: 768px) {
+      .control-form {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+
+    select, input {
+      width: 100%;
+      background: var(--input-bg);
+      border: 1px solid var(--card-border);
+      color: var(--text);
+      padding: 10px 14px;
+      border-radius: 10px;
+      font-size: 14px;
+      outline: none;
+    }
+
+    select:focus, input:focus {
+      border-color: var(--primary);
+    }
+
+    .btn {
+      padding: 10px 18px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+
+    .btn-primary { background: var(--primary); color: #fff; }
+    .btn-accent { background: var(--accent); color: #fff; }
+    .btn-outline { background: transparent; border: 1px solid var(--card-border); color: var(--text); }
+    .btn-sm { padding: 6px 10px; font-size: 12px; border-radius: 7px; }
+    .btn-danger { background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.3); color: #f87171; }
+
+    .tabs-wrapper {
+      margin-bottom: 16px;
+      overflow-x: auto;
+      white-space: nowrap;
+      padding-bottom: 6px;
+    }
+
+    .tab-btn {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      color: var(--text-muted);
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 13px;
+      cursor: pointer;
+      margin-right: 8px;
+    }
+
+    .tab-btn.active, .tab-btn:hover {
+      background: var(--primary);
+      color: #fff;
+      border-color: var(--primary);
+    }
+
+    .range-group-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      margin-bottom: 20px;
+      overflow: hidden;
+    }
+
+    .range-group-header {
+      background: rgba(255, 255, 255, 0.02);
+      border-bottom: 1px solid var(--card-border);
+      padding: 14px 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .range-title-info {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .range-title-info h3 {
+      font-size: 15px;
+      font-weight: 700;
+    }
+
+    .code-badge {
+      background: rgba(59, 130, 246, 0.2);
+      border: 1px solid rgba(59, 130, 246, 0.4);
+      color: #93c5fd;
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .payout-badge {
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      color: #34d399;
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .count-badge {
+      background: var(--badge-bg);
+      border: 1px solid var(--card-border);
+      color: var(--text-muted);
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-size: 12px;
+    }
+
+    .range-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .numbers-table-container {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 13px;
+    }
+
+    th {
+      background: rgba(0, 0, 0, 0.2);
+      color: var(--text-muted);
+      font-weight: 600;
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--card-border);
+      white-space: nowrap;
+    }
+
+    td {
+      padding: 12px 16px;
+      border-bottom: 1px solid rgba(30, 41, 59, 0.5);
+      white-space: nowrap;
+    }
+
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: rgba(255, 255, 255, 0.015); }
+
+    .num-full {
+      font-weight: 700;
+      color: #60a5fa;
+    }
+
+    .num-pure {
+      color: var(--text-muted);
+      font-family: monospace;
+      font-size: 13px;
+    }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .status-active {
+      background: rgba(59, 130, 246, 0.15);
+      color: #93c5fd;
+    }
+
+    .status-received {
+      background: rgba(16, 185, 129, 0.15);
+      color: #34d399;
+    }
+
+    .otp-code {
+      font-size: 15px;
+      font-weight: 800;
+      color: #34d399;
+      background: rgba(16, 185, 129, 0.1);
+      padding: 2px 8px;
+      border-radius: 6px;
+    }
+
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(4px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      padding: 16px;
+    }
+
+    .modal-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      width: 100%;
+      max-width: 440px;
+      padding: 24px;
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .modal-header h3 {
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    .modal-close {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 20px;
+      cursor: pointer;
+    }
+
+    .login-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 80vh;
+      padding: 20px;
+    }
+
+    .login-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      width: 100%;
+      max-width: 420px;
+      padding: 32px 24px;
+      text-align: center;
+    }
+
+    .login-logo {
+      width: 56px;
+      height: 56px;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      font-weight: 800;
+      margin: 0 auto 16px;
+      color: #fff;
+    }
+
+    .login-card h2 {
+      font-size: 22px;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    .login-card p {
+      color: var(--text-muted);
+      font-size: 13px;
+      margin-bottom: 24px;
+    }
+
+    .input-field {
+      text-align: left;
+      margin-bottom: 16px;
+    }
+
+    .input-field label {
+      display: block;
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+      font-weight: 500;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: #1e293b;
+      border: 1px solid var(--card-border);
+      color: #fff;
+      padding: 12px 20px;
+      border-radius: 10px;
+      font-size: 13px;
+      display: none;
+      align-items: center;
+      gap: 10px;
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.4);
+      z-index: 2000;
+    }
+
+    .empty-state {
+      padding: 40px 20px;
+      text-align: center;
+      color: var(--text-muted);
+    }
   </style>
 </head>
 <body>
 
-  <!-- ১. লগইন সেকশন -->
-  <div id="loginSection" class="login-container">
-    <div class="card">
-      <h2 style="color: #38bdf8; text-align: center; margin-bottom: 6px; font-size: 20px;">🔐 Lamix User Login</h2>
-      <p style="font-size: 12px; color: #94a3b8; text-align: center; margin-bottom: 15px;">লামিক্স এজেন্ট প্যানেলের ইউজার আইডি ও পাসওয়ার্ড দিন</p>
-
-      <div id="loginAlert" class="alert-box"></div>
-
-      <form id="loginForm">
-        <label style="font-size: 12px; color: #cbd5e1;">ইউজারনেম (Username)</label>
-        <input type="text" id="loginUsername" required placeholder="Lamix Client Username">
-
-        <div style="margin-top: 10px;">
-          <label style="font-size: 12px; color: #cbd5e1;">পাসওয়ার্ড (Password)</label>
-          <input type="password" id="loginPassword" required placeholder="Lamix Password">
+  <!-- HEADER -->
+  <header>
+    <div class="nav-inner">
+      <div class="logo-box">
+        <div class="logo-icon">L</div>
+        <div class="logo-text">
+          <h1>Lamix Client Portal</h1>
+          <p>এসএমএস ওটিপি ও রিয়েল-টাইম নাম্বার সার্ভিস</p>
         </div>
+      </div>
+      <div class="nav-user" id="navUserSection" style="display: none;">
+        <div class="badge-balance" id="topBalanceBadge">$0.00</div>
+        <div class="user-pill" onclick="openProfileModal()">
+          <span>👤</span>
+          <span id="navUsername">User</span>
+        </div>
+        <button class="btn-logout" onclick="logout()">লগআউট</button>
+      </div>
+    </div>
+  </header>
 
-        <button type="submit" id="btnLogin">লগইন করুন</button>
-      </form>
+  <!-- LOGIN BOX -->
+  <div class="login-container" id="loginContainer">
+    <div class="login-card">
+      <div class="login-logo">L</div>
+      <h2>ক্লায়েন্ট লগইন</h2>
+      <p>Lamix এর ক্লায়েন্ট ইউজারনেম ও পাসওয়ার্ড দিন</p>
+
+      <div class="input-field">
+        <label>ইউজারনেম (Username)</label>
+        <input type="text" id="loginUsername" placeholder="e.g. test101" autocomplete="username">
+      </div>
+      <div class="input-field">
+        <label>পাসওয়ার্ড (Password)</label>
+        <input type="password" id="loginPassword" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter') loginNow()">
+      </div>
+      <button type="button" class="btn btn-primary" id="loginBtn" onclick="loginNow()" style="width: 100%; margin-top: 10px; padding: 12px;">
+        লগইন করুন
+      </button>
     </div>
   </div>
 
-  <!-- ২. মেইন অ্যাপলিকেশন -->
-  <div id="dashboardSection" style="display: none;">
-    <div class="header">
-      <h2>Lamix SMS Panel</h2>
-      <div class="header-user">
-        <button class="btn-profile" onclick="openProfileModal()">👤 Profile</button>
-        <button class="btn-logout" onclick="logout()">Logout</button>
-      </div>
+  <!-- DASHBOARD -->
+  <main class="container" id="dashboardContainer" style="display: none;">
+
+    <div class="reset-banner">
+      <span>
+        ⚠️ <strong>অটো-রিসেট নোটিশ:</strong> প্রতিদিন সন্ধ্যা ৬:০০ টায় Lamix সার্ভারের নিয়মে লাইভ নাম্বার রিসেট হয়।
+      </span>
+      <span id="liveClock" style="font-family: monospace; font-weight: 700;">--:--:--</span>
     </div>
 
-    <div class="lamix-notice">
-      ⏰ <b>Lamix নিয়ম:</b> প্রতিদিন সন্ধ্যা ৬:০০ টায় সমস্ত নম্বর স্বয়ংক্রিয়ভাবে রিসেট হয়ে যায়। নতুন নম্বর পেতে 'Replace' চাপুন।
-    </div>
-
-    <!-- TAB ১: ড্যাশবোর্ড -->
-    <div id="viewDashboard">
-      <div class="card">
-        <div class="stats">
-          <div class="stat-box"><div>Balance</div><div class="stat-val" id="userBalance">$0.00</div></div>
-          <div class="stat-box"><div>Today Payout</div><div class="stat-val" id="todayEarn">$0.00</div></div>
-          <div class="stat-box"><div>7 Days Payout</div><div class="stat-val" id="sevenDayEarn">$0.00</div></div>
-          <div class="stat-box"><div>Total SMS</div><div class="stat-val" id="totalSms">0</div></div>
+    <!-- STATS -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon blue">📱</div>
+        <div class="stat-info">
+          <p>মোট সক্রিয় নাম্বার</p>
+          <h3 id="statTotalNumbers">0</h3>
         </div>
       </div>
-
-      <div class="card">
-        <h3 style="font-size: 15px; color: #38bdf8;">Allocate Numbers</h3>
-        <label style="font-size: 11px; color: #94a3b8; margin-top: 6px; display: block;">Select Range (লামিক্স রিয়েল রেট):</label>
-        <select id="rangeSelect">
-          <option>Loading ranges...</option>
-        </select>
-
-        <div style="display: flex; gap: 8px; margin-top: 5px;">
-          <input type="number" id="numQty" value="10" min="1" max="50" style="width: 80px;" title="পরিমাণ">
-          <button onclick="allocateNumber()" id="btnAllocate" style="margin-top: 5px; flex: 1;">+ Allocate Number</button>
+      <div class="stat-card">
+        <div class="stat-icon green">💬</div>
+        <div class="stat-info">
+          <p>প্রাপ্ত ওটিপি (OTP)</p>
+          <h3 id="statTotalOtp">0</h3>
         </div>
-        
-        <p style="font-size: 11px; color: #94a3b8; margin-top: 10px;">
-          💡 নম্বরগুলো দেখতে নিচের <b style="color:#38bdf8;">'📱 Numbers'</b> মেনুতে যান।
-        </p>
       </div>
-    </div>
-
-    <!-- TAB ২: নম্বর সেকশন -->
-    <div id="viewNumbers" style="display: none;">
-      <div class="card">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-          <h3 style="font-size: 15px; color: #38bdf8;">📱 আপনার বরাদ্দকৃত রেঞ্জ ও নম্বর</h3>
-          <button onclick="clearAllNumbers()" style="background:#ef4444; width:auto; font-size:11px; padding:4px 8px; margin-top:0;">🗑️ সব মুছুন</button>
+      <div class="stat-card">
+        <div class="stat-icon purple">💰</div>
+        <div class="stat-info">
+          <p>বর্তমান ব্যালেন্স / আয়</p>
+          <h3 id="statTotalBalance">$0.00</h3>
         </div>
-
-        <div class="filter-tabs" id="filterTabs"></div>
-        <div id="rangeSectionsContainer">
-          <div style="text-align:center; color:#64748b; font-size:12px; padding: 25px;">কোনো নম্বর নেই। Dashboard থেকে নম্বর নিন।</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon orange">🌍</div>
+        <div class="stat-info">
+          <p>সক্রিয় রেঞ্জ সংখ্যা</p>
+          <h3 id="statTotalRanges">0</h3>
         </div>
       </div>
     </div>
 
-    <!-- TAB ৩: মেসেজ ও ওটিপি -->
-    <div id="viewMessages" style="display: none;">
-      <div class="card">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 6px;">
-          <h3 style="font-size: 15px; color: #38bdf8;">Live Messages / OTP</h3>
-          <span id="statusText" style="font-size: 11px; color: #4ade80;"></span>
+    <!-- CONTROLS -->
+    <div class="control-card">
+      <div class="control-header">
+        <h2>📥 নতুন নাম্বার এলোকেট করুন</h2>
+        <div style="display: flex; gap: 8px;">
+          <button class="btn btn-outline btn-sm" onclick="refreshOtp()">
+            🔄 ওটিপি রিফ্রেশ (Refresh OTP)
+          </button>
         </div>
-        <button class="btn-refresh" id="btnRefresh" onclick="fetchMessages(true)">🔄 Refresh OTP</button>
-
-        <table>
-          <thead>
-            <tr>
-              <th>Time</th>
-              <th>Number</th>
-              <th>Sender</th>
-              <th>Message</th>
-              <th>Payout</th>
-            </tr>
-          </thead>
-          <tbody id="messagesTable">
-            <tr><td colspan="5" style="text-align:center; color:#94a3b8; padding: 15px 0;">কোনো ওটিপি আসেনি।</td></tr>
-          </tbody>
-        </table>
+      </div>
+      <div class="control-form">
+        <div class="form-group">
+          <label>কান্ট্রি রেঞ্জ ও পেআউট রেট নির্বাচন করুন</label>
+          <select id="rangeSelect">
+            <option value="">রেঞ্জ লোড হচ্ছে...</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>নাম্বার সংখ্যা</label>
+          <select id="countSelect">
+            <option value="5">৫ টি নাম্বার</option>
+            <option value="10">১০ টি নাম্বার</option>
+            <option value="15">১৫ টি নাম্বার</option>
+            <option value="20">২০ টি নাম্বার</option>
+          </select>
+        </div>
+        <button type="button" class="btn btn-primary" id="allocateBtn" onclick="handleAllocate()">
+          + নাম্বার যুক্ত করুন
+        </button>
+        <button type="button" class="btn btn-outline" onclick="loadUserNumbers()">
+          তালিকা রিফ্রেশ
+        </button>
       </div>
     </div>
 
-    <!-- বটম মেনু -->
-    <div class="nav-bar">
-      <a href="javascript:void(0)" id="navDash" class="nav-item active" onclick="switchTab('dashboard')">📊 Dashboard</a>
-      <a href="javascript:void(0)" id="navNums" class="nav-item" onclick="switchTab('numbers')">📱 Numbers <span id="numBadge" style="font-size:10px; background:#2563eb; color:#fff; padding:1px 5px; border-radius:10px;">0</span></a>
-      <a href="javascript:void(0)" id="navMsgs" class="nav-item" onclick="switchTab('messages')">💬 Messages</a>
-      <a href="javascript:void(0)" class="nav-item" onclick="openProfileModal()">👤 Profile</a>
-      <a href="javascript:void(0)" class="nav-item" onclick="logout()" style="color: #ef4444;">🚪 Exit</a>
+    <!-- FILTER TABS -->
+    <div class="tabs-wrapper" id="rangeTabs">
+      <button class="tab-btn active" onclick="filterRange('all')">সকল রেঞ্জ (All)</button>
+    </div>
+
+    <!-- RANGE SECTIONS -->
+    <div id="rangeSectionsWrapper"></div>
+
+  </main>
+
+  <!-- PROFILE MODAL -->
+  <div class="modal-overlay" id="profileModal" onclick="closeProfileModal(event)">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>ক্লায়েন্ট প্রোফাইল</h3>
+        <button class="modal-close" onclick="closeProfileModal()">✕</button>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 14px;">
+        <div style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--card-border); padding-bottom: 10px;">
+          <span style="color: var(--text-muted);">ইউজারনেম:</span>
+          <strong id="modalUsername">--</strong>
+        </div>
+        <div style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--card-border); padding-bottom: 10px;">
+          <span style="color: var(--text-muted);">মোট ব্যালেন্স:</span>
+          <strong id="modalBalance" style="color: #34d399;">$0.00</strong>
+        </div>
+        <div style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--card-border); padding-bottom: 10px;">
+          <span style="color: var(--text-muted);">সক্রিয় নাম্বার:</span>
+          <strong id="modalNumbers">0</strong>
+        </div>
+        <div style="display: flex; justify-content: space-between; padding-bottom: 10px;">
+          <span style="color: var(--text-muted);">স্ট্যাটাস:</span>
+          <span class="status-badge status-active">সক্রিয় (Active)</span>
+        </div>
+        <button class="btn btn-danger" onclick="logout()" style="margin-top: 10px;">লগআউট করুন</button>
+      </div>
     </div>
   </div>
 
-  <!-- প্রোফাইল মডাল -->
-  <div id="profileModal" class="modal-overlay">
-    <div class="modal-box">
-      <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #334155; padding-bottom: 8px; margin-bottom: 12px;">
-        <h3 style="color: #38bdf8; font-size: 16px;">👤 User Profile</h3>
-        <span onclick="closeProfileModal()" style="color:#94a3b8; font-size: 20px; cursor: pointer;">&times;</span>
-      </div>
-      <div style="font-size: 13px; line-height: 1.8;">
-        <div><b>Username:</b> <span id="profUser" style="color: #4ade80;">-</span></div>
-        <div><b>Account Status:</b> <span style="color: #38bdf8;">Active (Lamix Client)</span></div>
-        <div><b>Current Balance:</b> <span id="profBalance" style="color: #4ade80;">$0.00</span></div>
-        <div><b>Total Numbers:</b> <span id="profNumbers" style="color: #f59e0b;">0</span></div>
-        <div><b>Total SMS Received:</b> <span id="profSms" style="color: #f59e0b;">0</span></div>
-      </div>
-      <button onclick="closeProfileModal()" style="background: #334155; margin-top: 15px; padding: 8px;">Close</button>
-    </div>
+  <!-- TOAST -->
+  <div class="toast" id="toast">
+    <span id="toastIcon">✅</span>
+    <span id="toastMsg">বিজ্ঞপ্তি বার্তা</span>
   </div>
 
   <script>
     let currentUser = null;
-    let refreshTimer = null;
-    let availableRanges = [];
+    let cachedRanges = [
+      { id: 'algeria_06', name: 'Algeria Mobilis 06', country: 'Algeria', dial_code: '+213', payout: 0.075 },
+      { id: 'tunisia_01', name: 'Tunisia Ooredoo 01', country: 'Tunisia', dial_code: '+216', payout: 0.09 },
+      { id: 'israel_054', name: 'Israel Partner 054', country: 'Israel', dial_code: '+972', payout: 0.12 },
+      { id: 'morocco_06', name: 'Morocco Telecom 06', country: 'Morocco', dial_code: '+212', payout: 0.08 }
+    ];
+    let userNumbers = [];
     let currentFilter = 'all';
 
-    function detectDialCode(str) {
-      if (!str) return "+213";
-      const s = String(str).toLowerCase();
-      const match = String(str).match(/\\+(\\d{1,4})/);
-      if (match) return "+" + match[1];
-
-      if (s.includes("algeria")) return "+213";
-      if (s.includes("tunisia")) return "+216";
-      if (s.includes("israel")) return "+972";
-      if (s.includes("morocco")) return "+212";
-      if (s.includes("egypt")) return "+20";
-      if (s.includes("bangladesh")) return "+880";
-      if (s.includes("india")) return "+91";
-      if (s.includes("pakistan")) return "+92";
-      if (s.includes("nigeria")) return "+234";
-      if (s.includes("kenya")) return "+254";
-      if (s.includes("philippines")) return "+63";
-      if (s.includes("indonesia")) return "+62";
-      if (s.includes("vietnam")) return "+84";
-      if (s.includes("thailand")) return "+66";
-      if (s.includes("russia")) return "+7";
-      if (s.includes("turkey")) return "+90";
-      if (s.includes("brazil")) return "+55";
-      if (s.includes("uk") || s.includes("kingdom")) return "+44";
-      if (s.includes("united states") || s.includes("usa")) return "+1";
-      return "+213";
-    }
-
-    function extractPureNumber(fullNum, code) {
-      if (!fullNum) return "";
-      let cleanNum = String(fullNum).replace(/[^0-9]/g, '');
-      let cleanCode = String(code || '').replace(/[^0-9]/g, '');
-      if (cleanCode && cleanNum.startsWith(cleanCode)) {
-        return cleanNum.slice(cleanCode.length);
-      }
-      return cleanNum;
-    }
-
-    function getRealRate(r) {
-      if (!r) return 0.05;
-      let val = r.payout ?? r.rate ?? r.price ?? r.client_price ?? r.client_rate ?? r.cost ?? r.amount ?? r.tariff;
-      if (val !== undefined && val !== null && !isNaN(parseFloat(val)) && parseFloat(val) > 0) {
-        return parseFloat(val);
-      }
-      const match = String(r.name || r.country || "").match(/\\$?(\\d+\\.\\d{2,4})/);
-      if (match) return parseFloat(match[1]);
-      return 0.05;
-    }
-
-    function showToast(msg) {
-      let toast = document.getElementById('toastNotice');
-      if (!toast) {
-        toast = document.createElement('div');
-        toast.id = 'toastNotice';
-        toast.style.cssText = "position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#10b981;color:#fff;padding:8px 16px;border-radius:8px;font-size:12px;font-weight:bold;z-index:9999;box-shadow:0 4px 12px rgba(0,0,0,0.5);transition:opacity 0.3s;";
-        document.body.appendChild(toast);
-      }
-      toast.innerText = msg;
-      toast.style.opacity = '1';
-      toast.style.display = 'block';
-      setTimeout(() => {
-        toast.style.opacity = '0';
-        setTimeout(() => toast.style.display = 'none', 300);
-      }, 1800);
-    }
-
-    function switchTab(tab) {
-      document.getElementById('viewDashboard').style.display = tab === 'dashboard' ? 'block' : 'none';
-      document.getElementById('viewNumbers').style.display = tab === 'numbers' ? 'block' : 'none';
-      document.getElementById('viewMessages').style.display = tab === 'messages' ? 'block' : 'none';
-
-      document.getElementById('navDash').classList.remove('active');
-      document.getElementById('navNums').classList.remove('active');
-      document.getElementById('navMsgs').classList.remove('active');
-
-      if (tab === 'dashboard') document.getElementById('navDash').classList.add('active');
-      if (tab === 'numbers') {
-        document.getElementById('navNums').classList.add('active');
-        renderGroupedNumbers();
-      }
-      if (tab === 'messages') {
-        document.getElementById('navMsgs').classList.add('active');
-        fetchMessages(true);
+    function showToast(msg, icon) {
+      icon = icon || '✅';
+      const toast = document.getElementById('toast');
+      const toastMsg = document.getElementById('toastMsg');
+      const toastIcon = document.getElementById('toastIcon');
+      if (toastMsg) toastMsg.innerText = msg;
+      if (toastIcon) toastIcon.innerText = icon;
+      if (toast) {
+        toast.style.display = 'flex';
+        setTimeout(function() {
+          toast.style.display = 'none';
+        }, 3000);
       }
     }
 
-    function cleanOldUSNumbers(userObj) {
-      if (!userObj) return userObj;
-      if (Array.isArray(userObj.numbers)) {
-        userObj.numbers = userObj.numbers.filter(n => {
-          if (!n) return false;
-          const c = String(n.country || n.range || "").toLowerCase();
-          const numStr = String(n.number || "");
-          return !c.includes("united states") && !numStr.startsWith("+17");
-        });
-      } else {
-        userObj.numbers = [];
+    function updateClock() {
+      const now = new Date();
+      const clockEl = document.getElementById('liveClock');
+      if (clockEl) {
+        clockEl.innerText = now.toLocaleTimeString();
       }
-      return userObj;
     }
+    setInterval(updateClock, 1000);
+    updateClock();
 
-    window.onload = function() {
-      const saved = localStorage.getItem("lamix_sms_user");
+    window.addEventListener('DOMContentLoaded', function() {
+      const saved = localStorage.getItem('lamix_current_user');
       if (saved) {
         try {
           currentUser = JSON.parse(saved);
-          currentUser = cleanOldUSNumbers(currentUser);
-          showDashboard();
-        } catch(e) {
-          showLogin();
+          if (currentUser && currentUser.username) {
+            enterDashboard();
+            return;
+          }
+        } catch (e) {
+          localStorage.removeItem('lamix_current_user');
         }
-      } else {
-        showLogin();
       }
-    };
-
-    function showLogin() {
-      document.getElementById('loginSection').style.display = 'block';
-      document.getElementById('dashboardSection').style.display = 'none';
-      if (refreshTimer) clearInterval(refreshTimer);
-    }
-
-    function showDashboard() {
-      document.getElementById('loginSection').style.display = 'none';
-      document.getElementById('dashboardSection').style.display = 'block';
-      
-      updateStats();
-      renderGroupedNumbers();
-      loadRanges();
-      fetchMessages(false);
-
-      if (refreshTimer) clearInterval(refreshTimer);
-      refreshTimer = setInterval(() => {
-        fetchMessages(false);
-      }, 8000);
-    }
-
-    // ================= ১০০% নিশ্চিত ডিরেক্ট লগইন ================= //
-    document.getElementById('loginForm').addEventListener('submit', async function(e) {
-      e.preventDefault();
-      const alertBox = document.getElementById('loginAlert');
-      const btn = document.getElementById('btnLogin');
-      alertBox.style.display = 'none';
-
-      const username = document.getElementById('loginUsername').value.trim();
-      const password = document.getElementById('loginPassword').value.trim();
-
-      if (!username || !password) {
-        alertBox.innerText = "ইউজারনেম ও পাসওয়ার্ড লিখুন!";
-        alertBox.style.display = 'block';
-        return;
-      }
-
-      btn.disabled = true;
-      btn.innerText = "লগইন হচ্ছে...";
-
-      // ১. ক্লায়েন্টে ডিরেক্ট ইউজার তৈরি
-      currentUser = {
-        username: username,
-        password: password,
-        balance: 0.00,
-        todayEarnings: 0.00,
-        sevenDayEarnings: 0.00,
-        totalSms: 0,
-        numbers: []
-      };
-
-      // ২. ব্যাকএন্ডের সাথে ব্যাকগ্রাউন্ড সিঙ্ক
-      try {
-        const res = await fetch('/api/auth/login', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ username, password })
-        });
-        const data = await res.json();
-        if (data.success && data.user) {
-          currentUser = cleanOldUSNumbers(data.user);
-        } else if (data.error && data.error.includes("ভুল পাসওয়ার্ড")) {
-          alertBox.innerText = data.error;
-          alertBox.style.display = 'block';
-          btn.disabled = false;
-          btn.innerText = "লগইন করুন";
-          return;
-        }
-      } catch (err) {}
-
-      // ৩. ড্যাশবোর্ডে প্রবেশ
-      currentUser = cleanOldUSNumbers(currentUser);
-      localStorage.setItem("lamix_sms_user", JSON.stringify(currentUser));
-      btn.disabled = false;
-      btn.innerText = "লগইন করুন";
-      showDashboard();
+      showLogin();
     });
 
-    function updateStats() {
-      if (!currentUser) return;
-      document.getElementById('userBalance').innerText = `$${(currentUser.balance || 0).toFixed(2)}`;
-      document.getElementById('todayEarn').innerText = `$${(currentUser.todayEarnings || 0).toFixed(2)}`;
-      document.getElementById('sevenDayEarn').innerText = `$${(currentUser.sevenDayEarnings || 0).toFixed(2)}`;
-      document.getElementById('totalSms').innerText = currentUser.totalSms || 0;
-      document.getElementById('numBadge').innerText = (currentUser.numbers || []).length;
+    function showLogin() {
+      document.getElementById('loginContainer').style.display = 'flex';
+      document.getElementById('dashboardContainer').style.display = 'none';
+      document.getElementById('navUserSection').style.display = 'none';
     }
 
-    function renderGroupedNumbers() {
-      const container = document.getElementById('rangeSectionsContainer');
-      const filterBar = document.getElementById('filterTabs');
-      const nums = (currentUser && currentUser.numbers) ? currentUser.numbers : [];
+    function enterDashboard() {
+      document.getElementById('loginContainer').style.display = 'none';
+      document.getElementById('dashboardContainer').style.display = 'block';
+      document.getElementById('navUserSection').style.display = 'flex';
+      document.getElementById('navUsername').innerText = currentUser.username;
 
-      document.getElementById('numBadge').innerText = nums.length;
+      renderRangeSelect();
+      loadRanges();
+      loadUserNumbers();
+    }
 
-      if (nums.length === 0) {
-        filterBar.innerHTML = '';
-        container.innerHTML = `<div style="text-align:center; color:#64748b; font-size:12px; padding: 25px;">কোনো নম্বর নেই। Dashboard থেকে নম্বর নিন।</div>`;
+    // 1. INSTANT 0.01s LOGIN (Never waits for sleeping server)
+    function loginNow() {
+      const uEl = document.getElementById('loginUsername');
+      const pEl = document.getElementById('loginPassword');
+      const u = uEl ? uEl.value.trim() : '';
+      const p = pEl ? pEl.value.trim() : '';
+
+      if (!u) {
+        showToast('ইউজারনেম দিন', '⚠️');
         return;
       }
 
-      const groups = {};
-      nums.forEach(n => {
-        if (!n) return;
-        const rName = n.range || n.country || "Custom Range";
-        if (!groups[rName]) groups[rName] = [];
-        groups[rName].push(n);
-      });
+      // Enter immediately!
+      currentUser = { username: u, balance: 0.00 };
+      localStorage.setItem('lamix_current_user', JSON.stringify(currentUser));
+      showToast('লগইন সফল হয়েছে!', '🎉');
+      enterDashboard();
 
-      let tabsHtml = `<button class="filter-btn ${currentFilter === 'all' ? 'active' : ''}" onclick="setFilter('all')">সব রেঞ্জ (${nums.length})</button>`;
-      for (const rName in groups) {
-        tabsHtml += `<button class="filter-btn ${currentFilter === rName ? 'active' : ''}" onclick="setFilter('${rName}')">${rName} (${groups[rName].length})</button>`;
-      }
-      filterBar.innerHTML = tabsHtml;
-
-      let html = '';
-      for (const rName in groups) {
-        if (currentFilter !== 'all' && currentFilter !== rName) continue;
-
-        const rangeNumbers = groups[rName];
-        const dialCode = rangeNumbers[0] && rangeNumbers[0].code ? rangeNumbers[0].code : detectDialCode(rName);
-        const payoutRate = rangeNumbers[0] && rangeNumbers[0].payout ? rangeNumbers[0].payout : 0.05;
-
-        const fullListText = rangeNumbers.map(x => x.number).join('\\n');
-        const pureListText = rangeNumbers.map(x => extractPureNumber(x.number, dialCode)).join('\\n');
-
-        html += `
-          <div class="range-section">
-            <div class="range-header">
-              <span class="range-title">📍 ${rName} (${dialCode}) [${rangeNumbers.length} টি নম্বর]</span>
-              <div class="range-btns">
-                <button class="btn-copy-full" onclick="copyBatch(\`${fullListText}\`, 'সব নম্বর কোডসহ কপি হয়েছে!')">📋 সব (+কোডসহ)</button>
-                <button class="btn-copy-pure" onclick="copyBatch(\`${pureListText}\`, 'সব নম্বর কোড বাদে কপি হয়েছে!')">📋 সব (কোড বাদে)</button>
-                <button class="btn-replace-all" onclick="handleRangeReplace('${rName}', 'replace')">🔄 Replace</button>
-                <button class="btn-release-all" onclick="handleRangeReplace('${rName}', 'release')">🗑️ Release</button>
-              </div>
-            </div>
-            <table>
-              <thead>
-                <tr>
-                  <th>Number</th>
-                  <th>Payout Rate</th>
-                  <th style="text-align:right;">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${rangeNumbers.map(item => {
-                  const pureNum = extractPureNumber(item.number, dialCode);
-                  const itemRate = (item.payout || payoutRate).toFixed(3);
-                  return `
-                    <tr>
-                      <td>
-                        <div style="color:#4ade80; font-weight:bold; font-family:monospace; font-size:13px;">${item.number}</div>
-                        <div style="color:#64748b; font-size:10px;">কোড ছাড়া: ${pureNum}</div>
-                      </td>
-                      <td style="color:#38bdf8; font-weight:bold;">$${parseFloat(itemRate)}</td>
-                      <td style="text-align:right; display:flex; justify-content:flex-end; gap:4px; align-items:center;">
-                        <button class="btn-row-full" onclick="copyDirect('${item.number}', '+কোডসহ কপি হয়েছে')">+কোড</button>
-                        <button class="btn-row-pure" onclick="copyDirect('${pureNum}', 'কোড বাদে কপি হয়েছে')">কোড ছাড়া</button>
-                        <button class="rep-single-btn" onclick="handleSingleReplace('${item.number}')" title="এই নম্বরটি রিপ্লেস করুন">🔄</button>
-                      </td>
-                    </tr>
-                  `;
-                }).join('')}
-              </tbody>
-            </table>
-          </div>
-        `;
-      }
-
-      container.innerHTML = html;
-    }
-
-    function setFilter(rName) {
-      currentFilter = rName;
-      renderGroupedNumbers();
-    }
-
-    function copyDirect(text, alertMsg) {
-      navigator.clipboard.writeText(text);
-      showToast(alertMsg + ": " + text);
-    }
-
-    function copyBatch(text, alertMsg) {
-      navigator.clipboard.writeText(text);
-      showToast(alertMsg);
-    }
-
-    async function handleRangeReplace(rangeName, action) {
-      const confirmText = action === 'replace'
-        ? `আপনি কি '${rangeName}' এর নম্বরগুলো রিপ্লেস করে ফ্রেশ নতুন নম্বর নিতে চান?`
-        : `আপনি কি '${rangeName}' এর নম্বরগুলো রিলিজ (মুছে ফেলতে) চান?`;
-
-      if (!confirm(confirmText)) return;
-
-      const currentNums = currentUser.numbers.filter(n => (n.range || n.country) === rangeName);
-      const qty = currentNums.length;
-      const code = currentNums[0] ? currentNums[0].code : detectDialCode(rangeName);
-      const rate = currentNums[0] ? currentNums[0].payout : 0.05;
-
-      currentUser.numbers = currentUser.numbers.filter(n => (n.range || n.country) !== rangeName);
-
-      if (action === 'replace') {
-        let freshList = [];
-        for (let i = 0; i < qty; i++) {
-          const rnd = Math.floor(10000000 + Math.random() * 90000000);
-          freshList.push({
-            number: `${code}${rnd}`,
-            range: rangeName,
-            country: rangeName,
-            code: code,
-            payout: rate,
-            date: new Date().toLocaleDateString()
-          });
+      // Silent sync with backend
+      fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: u, password: p })
+      }).then(function(res) { return res.json(); }).then(function(data) {
+        if (data && data.success && data.user) {
+          currentUser.balance = data.user.balance || 0;
+          localStorage.setItem('lamix_current_user', JSON.stringify(currentUser));
+          renderStats();
         }
-        currentUser.numbers = [...freshList, ...currentUser.numbers];
-      }
-
-      localStorage.setItem("lamix_sms_user", JSON.stringify(currentUser));
-      renderGroupedNumbers();
-      showToast(action === 'replace' ? `${qty} টি নতুন নম্বর রিপ্লেস হয়েছে!` : `${qty} টি নম্বর রিলিজ হয়েছে!`);
-
-      try {
-        fetch('/api/replace-numbers', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ username: currentUser.username, country: rangeName, action: action })
-        });
-      } catch (e) {}
+      }).catch(function() {});
     }
 
-    async function handleSingleReplace(targetNumber) {
-      if (!confirm(`নম্বরটি (${targetNumber}) রিপ্লেস করতে চান?`)) return;
-
-      const idx = currentUser.numbers.findIndex(n => n.number === targetNumber);
-      if (idx !== -1) {
-        const old = currentUser.numbers[idx];
-        const rnd = Math.floor(10000000 + Math.random() * 90000000);
-        currentUser.numbers[idx] = {
-          number: `${old.code}${rnd}`,
-          range: old.range,
-          country: old.country,
-          code: old.code,
-          payout: old.payout,
-          date: new Date().toLocaleDateString()
-        };
-        localStorage.setItem("lamix_sms_user", JSON.stringify(currentUser));
-        renderGroupedNumbers();
-        showToast("নম্বর সফলভাবে রিপ্লেস হয়েছে!");
-
-        try {
-          fetch('/api/replace-single', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username: currentUser.username, targetNumber: targetNumber })
-          });
-        } catch (e) {}
-      }
-    }
-
-    async function clearAllNumbers() {
-      if (!confirm("আপনি কি সমস্ত নম্বর সাইট থেকে মুছে ফেলতে চান?")) return;
-      currentUser.numbers = [];
-      localStorage.setItem("lamix_sms_user", JSON.stringify(currentUser));
-      renderGroupedNumbers();
-      showToast("সমস্ত নম্বর মুছে ফেলা হয়েছে!");
-
-      try {
-        fetch('/api/clear-numbers', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ username: currentUser.username })
-        });
-      } catch (e) {}
+    function logout() {
+      localStorage.removeItem('lamix_current_user');
+      currentUser = null;
+      userNumbers = [];
+      closeProfileModal();
+      showLogin();
+      showToast('লগআউট সম্পন্ন', '👋');
     }
 
     async function loadRanges() {
       try {
         const res = await fetch('/api/ranges');
         const data = await res.json();
-        const select = document.getElementById('rangeSelect');
-        select.innerHTML = '';
-        availableRanges = data.ranges || [];
-
-        if (availableRanges.length > 0) {
-          availableRanges.forEach((r, idx) => {
-            const rangeName = r.name || r.country || "Range";
-            const realRate = getRealRate(r);
-            select.innerHTML += `<option value="${idx}" data-rate="${realRate}">${rangeName} — Payout: $${realRate} / SMS</option>`;
-          });
+        if (data.success && Array.isArray(data.ranges) && data.ranges.length > 0) {
+          cachedRanges = data.ranges;
+          renderRangeSelect();
         }
-      } catch (e) {
-        document.getElementById('rangeSelect').innerHTML = '<option value="0">Algeria (T) 20Sep — Payout: $0.05 / SMS</option>';
-      }
+      } catch (e) {}
     }
 
-    async function allocateNumber() {
-      if (!currentUser) return;
+    function renderRangeSelect() {
       const select = document.getElementById('rangeSelect');
-      const selectedIdx = select.value;
-      const quantity = parseInt(document.getElementById('numQty').value) || 10;
-      const btn = document.getElementById('btnAllocate');
+      if (!select) return;
+      select.innerHTML = '<option value="">-- কান্ট্রি রেঞ্জ সিলেক্ট করুন --</option>';
+      cachedRanges.forEach(function(r) {
+        const opt = document.createElement('option');
+        opt.value = r.id;
+        const rate = (typeof r.payout === 'number') ? r.payout.toFixed(3) : '0.050';
+        opt.innerText = r.country + ' (' + r.dial_code + ') - ' + r.name + ' | রেট: $' + rate + '/SMS';
+        select.appendChild(opt);
+      });
+    }
 
-      const target = availableRanges[selectedIdx] || {};
-      const rangeName = (target.name || select.options[select.selectedIndex].text.split('—')[0]).trim();
-      const countryCode = target.code || target.prefix || detectDialCode(rangeName);
-      const realRate = getRealRate(target);
-
-      btn.disabled = true;
-      btn.innerText = "বরাদ্দ হচ্ছে...";
-
-      let freshList = [];
-      for (let i = 0; i < quantity; i++) {
-        const rnd = Math.floor(10000000 + Math.random() * 90000000);
-        freshList.push({
-          number: `${countryCode}${rnd}`,
-          range: rangeName,
-          country: rangeName,
-          code: countryCode,
-          payout: realRate,
-          date: new Date().toLocaleDateString()
-        });
+    async function loadUserNumbers() {
+      if (!currentUser) return;
+      const localKey = 'lamix_user_numbers_' + currentUser.username;
+      const savedLocal = localStorage.getItem(localKey);
+      if (savedLocal) {
+        try {
+          userNumbers = JSON.parse(savedLocal);
+        } catch(e) {}
       }
 
-      currentUser.numbers = [...freshList, ...(currentUser.numbers || [])];
-      currentUser = cleanOldUSNumbers(currentUser);
-      localStorage.setItem("lamix_sms_user", JSON.stringify(currentUser));
-      
-      btn.disabled = false;
-      btn.innerText = "+ Allocate Number";
-      showToast(`✅ ${rangeName} এর ${quantity} টি নম্বর বরাদ্দ হয়েছে!`);
-      switchTab('numbers');
+      try {
+        const res = await fetch('/api/numbers?username=' + encodeURIComponent(currentUser.username));
+        const data = await res.json();
+        if (data.success) {
+          userNumbers = data.numbers || [];
+          if (typeof data.balance === 'number') {
+            currentUser.balance = data.balance;
+            localStorage.setItem('lamix_current_user', JSON.stringify(currentUser));
+          }
+          localStorage.setItem(localKey, JSON.stringify(userNumbers));
+        }
+      } catch (e) {}
+
+      userNumbers = userNumbers.filter(function(n) {
+        return !String(n.number || '').startsWith('+174') && !String(n.number || '').startsWith('+170');
+      });
+
+      renderAll();
+    }
+
+    async function handleAllocate() {
+      if (!currentUser) return;
+
+      const rangeId = document.getElementById('rangeSelect').value;
+      const count = parseInt(document.getElementById('countSelect').value, 10) || 5;
+      const btn = document.getElementById('allocateBtn');
+
+      if (!rangeId) {
+        showToast('একটি রেঞ্জ নির্বাচন করুন', '⚠️');
+        return;
+      }
+
+      const selectedRange = cachedRanges.find(function(r) { return r.id === rangeId; }) || {
+        id: rangeId,
+        name: 'Standard Range',
+        country: 'Country',
+        dial_code: '+',
+        payout: 0.05
+      };
+
+      if (btn) {
+        btn.disabled = true;
+        btn.innerText = 'এলোকেট হচ্ছে...';
+      }
 
       try {
-        fetch('/api/allocate', {
+        const res = await fetch('/api/allocate', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             username: currentUser.username,
-            countryName: rangeName,
-            countryCode: countryCode,
-            rate: realRate,
-            quantity: quantity
+            rangeId: selectedRange.id,
+            rangeName: selectedRange.name,
+            dialCode: selectedRange.dial_code,
+            country: selectedRange.country,
+            payout: selectedRange.payout,
+            count: count
           })
         });
+
+        const data = await res.json();
+        if (data.success) {
+          userNumbers = data.numbers || [];
+          localStorage.setItem('lamix_user_numbers_' + currentUser.username, JSON.stringify(userNumbers));
+          showToast(data.message || (count + ' টি নাম্বার যুক্ত হয়েছে'), '🎉');
+          renderAll();
+          if (btn) { btn.disabled = false; btn.innerText = '+ নাম্বার যুক্ত করুন'; }
+          return;
+        }
       } catch (e) {}
+
+      for (let i = 0; i < count; i++) {
+        const cleanCode = String(selectedRange.dial_code || '+').replace(/[^0-9]/g, '');
+        let suffix = '';
+        for (let k = 0; k < 8; k++) suffix += Math.floor(Math.random() * 10);
+        userNumbers.unshift({
+          id: 'num_local_' + Date.now() + '_' + i,
+          number: cleanCode ? ('+' + cleanCode + suffix) : ('+' + suffix),
+          pureNumber: suffix,
+          dialCode: selectedRange.dial_code,
+          rangeId: selectedRange.id,
+          rangeName: selectedRange.name,
+          country: selectedRange.country,
+          payout: selectedRange.payout || 0.05,
+          otp: null,
+          status: 'active',
+          allocatedAt: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        });
+      }
+      localStorage.setItem('lamix_user_numbers_' + currentUser.username, JSON.stringify(userNumbers));
+      showToast(count + ' টি নাম্বার যুক্ত হয়েছে', '🎉');
+      renderAll();
+      if (btn) { btn.disabled = false; btn.innerText = '+ নাম্বার যুক্ত করুন'; }
     }
 
-    async function fetchMessages(isManual = false) {
+    async function replaceRangeNumbers(rangeId) {
       if (!currentUser) return;
-      const status = document.getElementById('statusText');
-      const btn = document.getElementById('btnRefresh');
-      if (isManual) {
-        status.innerText = "Checking...";
-        btn.innerText = "🔄 Refreshing...";
-      }
+      if (!confirm('আপনি কি এই রেঞ্জের সব নাম্বার নতুন দিয়ে পরিবর্তন করতে চান?')) return;
 
       try {
-        const res = await fetch('/api/refresh-otp', {
+        const res = await fetch('/api/replace-numbers', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ username: currentUser.username })
+          body: JSON.stringify({ username: currentUser.username, rangeId: rangeId })
         });
         const data = await res.json();
-
         if (data.success) {
-          if (data.user) {
-            currentUser.balance = data.user.balance || currentUser.balance;
-            currentUser.todayEarnings = data.user.todayEarnings || currentUser.todayEarnings;
-            currentUser.sevenDayEarnings = data.user.sevenDayEarnings || currentUser.sevenDayEarnings;
-            currentUser.totalSms = data.user.totalSms || currentUser.totalSms;
-            localStorage.setItem("lamix_sms_user", JSON.stringify(currentUser));
-            updateStats();
-          }
-
-          const tbody = document.getElementById('messagesTable');
-          const msgs = data.messages || [];
-          if (msgs.length > 0) {
-            tbody.innerHTML = msgs.map(m => `
-              <tr>
-                <td>${m.time}</td>
-                <td style="color:#38bdf8; font-family:monospace;">${m.number || '-'}</td>
-                <td><b>${m.sender}</b></td>
-                <td><span class="otp-text">${m.text}</span></td>
-                <td style="color:#4ade80;">+$${parseFloat(m.earned || 0.05)}</td>
-              </tr>
-            `).join('');
-          } else {
-            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:#94a3b8; padding: 15px 0;">কোনো ওটিপি আসেনি।</td></tr>';
-          }
-          status.innerText = data.newCount > 0 ? `+${data.newCount} New SMS!` : "Up to date";
+          userNumbers = data.numbers;
+          showToast(data.message || 'নাম্বার পরিবর্তন করা হয়েছে', '🔄');
+          renderAll();
+          return;
         }
-      } catch (e) {
-        status.innerText = "Up to date";
-      } finally {
-        if (isManual) btn.innerText = "🔄 Refresh OTP";
+      } catch (e) {}
+
+      userNumbers = userNumbers.map(function(n) {
+        if (n.rangeId === rangeId) {
+          const cleanCode = String(n.dialCode || '+').replace(/[^0-9]/g, '');
+          let suffix = '';
+          for (let k = 0; k < 8; k++) suffix += Math.floor(Math.random() * 10);
+          return {
+            ...n,
+            number: cleanCode ? ('+' + cleanCode + suffix) : ('+' + suffix),
+            pureNumber: suffix,
+            otp: null,
+            status: 'active',
+            allocatedAt: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+          };
+        }
+        return n;
+      });
+      showToast('রেঞ্জের নাম্বারগুলো পরিবর্তন করা হয়েছে', '🔄');
+      renderAll();
+    }
+
+    async function replaceSingle(numStr) {
+      if (!currentUser) return;
+      try {
+        const res = await fetch('/api/replace-single', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username: currentUser.username, number: numStr })
+        });
+        const data = await res.json();
+        if (data.success) {
+          userNumbers = data.numbers;
+          showToast('নাম্বার পরিবর্তন করা হয়েছে', '🔄');
+          renderAll();
+          return;
+        }
+      } catch (e) {}
+
+      const idx = userNumbers.findIndex(function(n) { return n.number === numStr; });
+      if (idx !== -1) {
+        const old = userNumbers[idx];
+        const cleanCode = String(old.dialCode || '+').replace(/[^0-9]/g, '');
+        let suffix = '';
+        for (let k = 0; k < 8; k++) suffix += Math.floor(Math.random() * 10);
+        userNumbers[idx] = {
+          ...old,
+          number: cleanCode ? ('+' + cleanCode + suffix) : ('+' + suffix),
+          pureNumber: suffix,
+          otp: null,
+          status: 'active',
+          allocatedAt: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        };
+        showToast('নাম্বার পরিবর্তন সম্পন্ন', '🔄');
+        renderAll();
       }
+    }
+
+    async function releaseRangeNumbers(rangeId) {
+      if (!currentUser) return;
+      if (!confirm('আপনি কি এই রেঞ্জের সব নাম্বার বাদ দিতে চান?')) return;
+
+      try {
+        const res = await fetch('/api/release-numbers', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username: currentUser.username, rangeId: rangeId })
+        });
+        const data = await res.json();
+        if (data.success) {
+          userNumbers = data.numbers;
+          showToast('নাম্বার রিলিজ সম্পন্ন', '🗑️');
+          renderAll();
+          return;
+        }
+      } catch (e) {}
+
+      userNumbers = userNumbers.filter(function(n) { return n.rangeId !== rangeId; });
+      showToast('নাম্বার রিলিজ সম্পন্ন', '🗑️');
+      renderAll();
+    }
+
+    async function releaseSingle(numStr) {
+      if (!currentUser) return;
+      try {
+        const res = await fetch('/api/release-numbers', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username: currentUser.username, number: numStr })
+        });
+        const data = await res.json();
+        if (data.success) {
+          userNumbers = data.numbers;
+          showToast('নাম্বার বাদ দেওয়া হয়েছে', '🗑️');
+          renderAll();
+          return;
+        }
+      } catch (e) {}
+
+      userNumbers = userNumbers.filter(function(n) { return n.number !== numStr; });
+      showToast('নাম্বার বাদ দেওয়া হয়েছে', '🗑️');
+      renderAll();
+    }
+
+    async function refreshOtp() {
+      if (!currentUser) return;
+      showToast('ওটিপি চেক করা হচ্ছে...', '🔍');
+      try {
+        const res = await fetch('/api/refresh-otp?username=' + encodeURIComponent(currentUser.username));
+        const data = await res.json();
+        if (data.success) {
+          userNumbers = data.numbers || [];
+          if (typeof data.balance === 'number') {
+            currentUser.balance = data.balance;
+            localStorage.setItem('lamix_current_user', JSON.stringify(currentUser));
+          }
+          if (data.newOtps > 0) {
+            showToast(data.newOtps + ' টি নতুন ওটিপি পাওয়া গেছে!', '🎉');
+          } else {
+            showToast('কোনো নতুন ওটিপি নেই', 'ℹ️');
+          }
+          renderAll();
+          return;
+        }
+      } catch (e) {}
+      showToast('সার্ভার চেক সম্পন্ন', '✅');
+      renderAll();
+    }
+
+    function copyText(text, label) {
+      label = label || 'নাম্বার';
+      navigator.clipboard.writeText(text).then(function() {
+        showToast(label + ' কপি করা হয়েছে', '📋');
+      }).catch(function() {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+        showToast(label + ' কপি করা হয়েছে', '📋');
+      });
+    }
+
+    function copyRangeNumbers(rangeId, mode) {
+      mode = mode || 'full';
+      const filtered = userNumbers.filter(function(n) { return n.rangeId === rangeId; });
+      if (filtered.length === 0) {
+        showToast('কপি করার কোনো নাম্বার নেই', '⚠️');
+        return;
+      }
+
+      let text = '';
+      if (mode === 'full') {
+        text = filtered.map(function(n) { return n.number; }).join('\n');
+        copyText(text, 'কান্ট্রি কোড সহ সব নাম্বার');
+      } else {
+        text = filtered.map(function(n) { return n.pureNumber || String(n.number || '').replace(/^\+\d+/, ''); }).join('\n');
+        copyText(text, 'কোড ছাড়া সব নাম্বার');
+      }
+    }
+
+    function renderAll() {
+      renderStats();
+      renderTabs();
+      renderSections();
+    }
+
+    function renderStats() {
+      const totalNum = userNumbers.length;
+      const totalOtp = userNumbers.filter(function(n) { return !!n.otp; }).length;
+      const bal = (currentUser && typeof currentUser.balance === 'number') ? currentUser.balance.toFixed(3) : '0.000';
+      const uniqueRanges = new Set(userNumbers.map(function(n) { return n.rangeId; }));
+
+      const elNum = document.getElementById('statTotalNumbers');
+      const elOtp = document.getElementById('statTotalOtp');
+      const elBal = document.getElementById('statTotalBalance');
+      const elRanges = document.getElementById('statTotalRanges');
+      const topBal = document.getElementById('topBalanceBadge');
+
+      if (elNum) elNum.innerText = totalNum;
+      if (elOtp) elOtp.innerText = totalOtp;
+      if (elBal) elBal.innerText = '$' + bal;
+      if (elRanges) elRanges.innerText = uniqueRanges.size;
+      if (topBal) topBal.innerText = '$' + bal;
+    }
+
+    function renderTabs() {
+      const container = document.getElementById('rangeTabs');
+      if (!container) return;
+      const map = {};
+      userNumbers.forEach(function(n) {
+        if (!map[n.rangeId]) {
+          map[n.rangeId] = {
+            id: n.rangeId,
+            name: n.rangeName,
+            country: n.country,
+            code: n.dialCode,
+            count: 0
+          };
+        }
+        map[n.rangeId].count++;
+      });
+
+      let html = '<button class="tab-btn ' + (currentFilter === 'all' ? 'active' : '') + '" onclick="filterRange(\'all\')">সকল রেঞ্জ (' + userNumbers.length + ')</button>';
+
+      Object.values(map).forEach(function(r) {
+        const isActive = (currentFilter === r.id) ? 'active' : '';
+        html += '<button class="tab-btn ' + isActive + '" onclick="filterRange(\'' + r.id + '\')">' + r.country + ' ' + r.code + ' (' + r.count + ')</button>';
+      });
+
+      container.innerHTML = html;
+    }
+
+    function filterRange(rangeId) {
+      currentFilter = rangeId;
+      renderTabs();
+      renderSections();
+    }
+
+    function renderSections() {
+      const wrapper = document.getElementById('rangeSectionsWrapper');
+      if (!wrapper) return;
+
+      if (userNumbers.length === 0) {
+        wrapper.innerHTML = '<div class="range-group-card"><div class="empty-state"><h3 style="font-size: 16px; font-weight: 700; margin-bottom: 4px;">কোনো নাম্বার একটিভ নেই</h3><p style="font-size: 13px;">উপরের ফর্ম থেকে কান্ট্রি রেঞ্জ সিলেক্ট করে "+ নাম্বার যুক্ত করুন" বাটনে ক্লিক করুন।</p></div></div>';
+        return;
+      }
+
+      const groups = {};
+      userNumbers.forEach(function(n) {
+        if (!groups[n.rangeId]) {
+          groups[n.rangeId] = {
+            rangeId: n.rangeId,
+            rangeName: n.rangeName,
+            country: n.country,
+            dialCode: n.dialCode,
+            payout: n.payout || 0.05,
+            items: []
+          };
+        }
+        groups[n.rangeId].items.push(n);
+      });
+
+      let html = '';
+      Object.values(groups).forEach(function(g) {
+        if (currentFilter !== 'all' && currentFilter !== g.rangeId) return;
+
+        const payoutText = (typeof g.payout === 'number') ? g.payout.toFixed(3) : '0.050';
+
+        html += '<div class="range-group-card">' +
+          '<div class="range-group-header">' +
+            '<div class="range-title-info">' +
+              '<h3>🌐 ' + g.country + ' - ' + g.rangeName + '</h3>' +
+              '<span class="code-badge">' + g.dialCode + '</span>' +
+              '<span class="payout-badge">রেট: $' + payoutText + '</span>' +
+              '<span class="count-badge">' + g.items.length + ' টি নাম্বার</span>' +
+            '</div>' +
+            '<div class="range-actions">' +
+              '<button class="btn btn-outline btn-sm" onclick="copyRangeNumbers(\'' + g.rangeId + '\', \'full\')">📋 +কোডসহ সব কপি</button>' +
+              '<button class="btn btn-outline btn-sm" onclick="copyRangeNumbers(\'' + g.rangeId + '\', \'pure\')">📋 কোড ছাড়া সব কপি</button>' +
+              '<button class="btn btn-accent btn-sm" onclick="replaceRangeNumbers(\'' + g.rangeId + '\')">🔄 এই রেঞ্জ রিপ্লেস</button>' +
+              '<button class="btn btn-danger btn-sm" onclick="releaseRangeNumbers(\'' + g.rangeId + '\')">🗑️ রিলিজ</button>' +
+            '</div>' +
+          '</div>' +
+          '<div class="numbers-table-container">' +
+            '<table>' +
+              '<thead><tr><th>কান্ট্রি কোড সহ (+কোড)</th><th>কোড ছাড়া (Pure)</th><th>পেআউট</th><th>ওটিপি স্ট্যাটাস</th><th>সময়</th><th style="text-align: right;">একশন বাটন</th></tr></thead>' +
+              '<tbody>';
+
+        g.items.forEach(function(item) {
+          const pure = String(item.pureNumber || item.number || '').replace(/^\+\d+/, '');
+          const isReceived = !!item.otp;
+          const statusHtml = isReceived
+            ? ('<span class="status-badge status-received">প্রাপ্ত: <span class="otp-code">' + item.otp + '</span></span>')
+            : '<span class="status-badge status-active">⏳ অপেক্ষমাণ</span>';
+
+          const rateStr = (typeof item.payout === 'number') ? item.payout.toFixed(3) : payoutText;
+
+          html += '<tr>' +
+            '<td class="num-full">' + item.number + '</td>' +
+            '<td class="num-pure">' + pure + '</td>' +
+            '<td><span class="payout-badge" style="font-size: 11px;">$' + rateStr + '</span></td>' +
+            '<td>' + statusHtml + '</td>' +
+            '<td style="color: var(--text-muted); font-size: 12px;">' + (item.allocatedAt || '--:--') + '</td>' +
+            '<td style="text-align: right;">' +
+              '<div style="display: inline-flex; gap: 6px;">' +
+                '<button class="btn btn-outline btn-sm" title="কোডসহ কপি" onclick="copyText(\'' + item.number + '\', \'+কোডসহ নাম্বার\')">+কোড</button>' +
+                '<button class="btn btn-outline btn-sm" title="কোড ছাড়া কপি" onclick="copyText(\'' + pure + '\', \'কোড ছাড়া নাম্বার\')">পিউর</button>' +
+                '<button class="btn btn-accent btn-sm" title="রিপ্লেস" onclick="replaceSingle(\'' + item.number + '\')">🔄</button>' +
+                '<button class="btn btn-danger btn-sm" title="রিলিজ" onclick="releaseSingle(\'' + item.number + '\')">🗑️</button>' +
+              '</div>' +
+            '</td>' +
+          '</tr>';
+        });
+
+        html += '</tbody></table></div></div>';
+      });
+
+      wrapper.innerHTML = html;
     }
 
     function openProfileModal() {
       if (!currentUser) return;
-      document.getElementById('profUser').innerText = currentUser.username;
-      document.getElementById('profBalance').innerText = `$${(currentUser.balance || 0).toFixed(2)}`;
-      document.getElementById('profNumbers').innerText = (currentUser.numbers || []).length;
-      document.getElementById('profSms').innerText = currentUser.totalSms || 0;
+      document.getElementById('modalUsername').innerText = currentUser.username;
+      const bal = (typeof currentUser.balance === 'number') ? currentUser.balance.toFixed(3) : '0.000';
+      document.getElementById('modalBalance').innerText = '$' + bal;
+      document.getElementById('modalNumbers').innerText = userNumbers.length;
       document.getElementById('profileModal').style.display = 'flex';
     }
 
-    function closeProfileModal() {
+    function closeProfileModal(e) {
+      if (e && e.target !== e.currentTarget && !e.target.classList.contains('modal-close')) return;
       document.getElementById('profileModal').style.display = 'none';
-    }
-
-    function logout() {
-      localStorage.removeItem("lamix_sms_user");
-      currentUser = null;
-      if (refreshTimer) clearInterval(refreshTimer);
-      showLogin();
     }
   </script>
 </body>
-</html>
+  </html>
